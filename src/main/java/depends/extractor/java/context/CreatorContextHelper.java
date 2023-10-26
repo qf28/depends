@@ -43,7 +43,7 @@ public class CreatorContextHelper {
 	}
 
 	private static String buildName(List<TerminalNode> identifiers) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for(TerminalNode id:identifiers) {
 			if (sb.length()>0)
 				sb.append(".");

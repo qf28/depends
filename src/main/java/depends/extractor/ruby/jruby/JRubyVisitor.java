@@ -103,8 +103,7 @@ public class JRubyVisitor extends NoopVisitor {
 	private Collection<String> getParams(IArgumentNode node) {
 		Node args = node.getArgs();
 		Collection<String> params = new ArrayList<>();
-		if (args instanceof ArrayNode) {
-			ArrayNode argArray = (ArrayNode) args;
+		if (args instanceof ArrayNode argArray) {
 			for (Node arg : argArray.childNodes()) {
 				if (arg instanceof StrNode) {
 					params.add(((StrNode) arg).getValue());
@@ -132,8 +131,7 @@ public class JRubyVisitor extends NoopVisitor {
 		GenericName varName = GenericName.build(helper.getName(varNode));
 		if (varName==null) return;
 		Entity var = context.foundEntityWithName(varName);
-		if (var != null && var instanceof VarEntity) {
-			VarEntity varEntity = (VarEntity) var;
+		if (var != null && var instanceof VarEntity varEntity) {
 			varEntity.addFunctionCall(GenericName.build(fname));
 		}
 	}

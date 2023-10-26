@@ -38,6 +38,7 @@ public class Scanner {
 			CodeReader cr = new CodeReader(file);
 			content = new String(cr.buffer);
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		IScannerInfo scannerInfo = new ScannerInfo(macroMap, sysIncludePath.toArray(new String[] {}));
 		IScannerExtensionConfiguration configuration = GPPScannerExtensionConfiguration.getInstance(scannerInfo);

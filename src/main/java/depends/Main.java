@@ -39,7 +39,6 @@ import depends.matrix.core.DependencyMatrix;
 import depends.relations.BindingResolver;
 import depends.relations.IBindingResolver;
 import depends.relations.RelationCounter;
-import edu.emory.mathcs.backport.java.util.Arrays;
 import multilang.depends.util.file.FileUtil;
 import multilang.depends.util.file.FolderCollector;
 import multilang.depends.util.file.TemporaryFile;
@@ -52,6 +51,7 @@ import picocli.CommandLine.PicocliException;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -86,7 +86,7 @@ public class Main {
 
 	private static void verifyParameters(DependsCommand args) throws ParameterException {
 		String[] granularities = args.getGranularity();
-		List<String> validGranularities = Arrays.asList(new String[]{"file", "method", "structure"});
+		List<String> validGranularities = Arrays.asList("file", "method", "structure");
 		for (String g:granularities){
 			if (!validGranularities.contains(g)){
 				throw  new ParameterException("granularity is invalid:"+g);

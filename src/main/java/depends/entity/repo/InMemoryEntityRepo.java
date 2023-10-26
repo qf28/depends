@@ -110,8 +110,7 @@ public class InMemoryEntityRepo extends SimpleIdGenerator implements EntityRepo 
 		Entity entity = this.getEntity(fileFullPath);
 		if (entity ==null) return null;
 		if (entity instanceof FileEntity) return (FileEntity) entity;
-		if (entity instanceof  MultiDeclareEntities){
-			MultiDeclareEntities multiDeclare = (MultiDeclareEntities) entity;
+		if (entity instanceof MultiDeclareEntities multiDeclare) {
 			for (Entity theEntity: multiDeclare.getEntities()){
 				if (theEntity instanceof FileEntity){
 					return (FileEntity) theEntity;

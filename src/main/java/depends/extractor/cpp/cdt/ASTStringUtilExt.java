@@ -49,27 +49,22 @@ public class ASTStringUtilExt extends ASTStringUtil {
 	
 
 	private static StringBuilder appendBareDeclSpecifierString(StringBuilder buffer, IASTDeclSpecifier declSpecifier) {
-		if (declSpecifier instanceof IASTCompositeTypeSpecifier) {
-			final IASTCompositeTypeSpecifier compositeTypeSpec = (IASTCompositeTypeSpecifier) declSpecifier;
+		if (declSpecifier instanceof IASTCompositeTypeSpecifier compositeTypeSpec) {
 			appendBareNameString(buffer, compositeTypeSpec.getName());
-		} else if (declSpecifier instanceof IASTElaboratedTypeSpecifier) {
-			final IASTElaboratedTypeSpecifier elaboratedTypeSpec = (IASTElaboratedTypeSpecifier) declSpecifier;
+		} else if (declSpecifier instanceof IASTElaboratedTypeSpecifier elaboratedTypeSpec) {
 			appendBareNameString(buffer, elaboratedTypeSpec.getName());
-		} else if (declSpecifier instanceof IASTEnumerationSpecifier) {
-			final IASTEnumerationSpecifier enumerationSpec = (IASTEnumerationSpecifier) declSpecifier;
+		} else if (declSpecifier instanceof IASTEnumerationSpecifier enumerationSpec) {
 			appendBareNameString(buffer, enumerationSpec.getName());
 		} else if (declSpecifier instanceof IASTSimpleDeclSpecifier) {
 			buffer.append(TypeEntity.buildInType.getRawName());
-		} else if (declSpecifier instanceof IASTNamedTypeSpecifier) {
-			final IASTNamedTypeSpecifier namedTypeSpec = (IASTNamedTypeSpecifier) declSpecifier;
+		} else if (declSpecifier instanceof IASTNamedTypeSpecifier namedTypeSpec) {
 			appendBareNameString(buffer, namedTypeSpec.getName());
 		}
 		return buffer;
 	}
 
 	private static StringBuilder appendBareNameString(StringBuilder buffer, IASTName name) {
-		if (name instanceof ICPPASTQualifiedName) {
-			final ICPPASTQualifiedName qualifiedName = (ICPPASTQualifiedName) name;
+		if (name instanceof ICPPASTQualifiedName qualifiedName) {
 			final ICPPASTNameSpecifier[] segments = qualifiedName.getAllSegments();
 			for (int i = 0; i < segments.length; i++) {
 				if (i > 0) {
@@ -140,8 +135,7 @@ public class ASTStringUtilExt extends ASTStringUtil {
 
 
 	private static StringBuilder appendBareNameString(StringBuilder buffer, ICPPASTNameSpecifier name) {
-		if (name instanceof ICPPASTQualifiedName) {
-			final ICPPASTQualifiedName qualifiedName = (ICPPASTQualifiedName) name;
+		if (name instanceof ICPPASTQualifiedName qualifiedName) {
 			final ICPPASTNameSpecifier[] segments = qualifiedName.getAllSegments();
 			for (int i = 0; i < segments.length; i++) {
 				if (i > 0) {

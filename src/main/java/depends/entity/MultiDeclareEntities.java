@@ -33,13 +33,14 @@ import java.util.List;
 
 /**
  * MultiDeclareEntity is a special container, which is used as a wrapper
- * of multi-declaration. for example, 
+ * of multi-declaration. for example,
  * in C++, a function could be declared in different place with the same signature.
  */
 public class MultiDeclareEntities extends ContainerEntity {
 	List<Entity> entities = new ArrayList<>();
 	private boolean containsTypeEntity = false;
-	public MultiDeclareEntities(Entity entity, int id ) {
+
+	public MultiDeclareEntities(Entity entity, int id) {
 		this.id = id;
 		setQualifiedName(entity.getQualifiedName());
 		setRawName(entity.getRawName());
@@ -48,18 +49,18 @@ public class MultiDeclareEntities extends ContainerEntity {
 
 	@Override
 	public void inferLocalLevelEntities(IBindingResolver bindingResolver) {
-		for (Entity entity:entities) {
+		for (Entity entity : entities) {
 			entity.inferLocalLevelEntities(bindingResolver);
 		}
 	}
 
 	public void add(Entity entity) {
 		entity.setMutliDeclare(this);
-		if (entity instanceof TypeEntity) 
+		if (entity instanceof TypeEntity)
 			this.containsTypeEntity = true;
-		if (entity instanceof  MultiDeclareEntities){
-			((MultiDeclareEntities)entity).entities.forEach(e->add(e));
-		}else {
+		if (entity instanceof MultiDeclareEntities) {
+			((MultiDeclareEntities) entity).entities.forEach(this::add);
+		} else {
 			entities.add(entity);
 		}
 	}
@@ -71,7 +72,7 @@ public class MultiDeclareEntities extends ContainerEntity {
 	@Override
 	public Collection<Entity> getChildren() {
 		List<Entity> children = new ArrayList<>();
-		for (Entity entity:entities) {
+		for (Entity entity : entities) {
 			children.addAll(entity.getChildren());
 		}
 		return children;
@@ -79,9 +80,9 @@ public class MultiDeclareEntities extends ContainerEntity {
 
 	@Override
 	public TypeEntity getType() {
-		for (Entity entity:entities) {
-			if(entity.getType()!=null);
-				return entity.getType();
+		for (Entity entity : entities) {
+			if (entity.getType() != null) ;
+			return entity.getType();
 		}
 		return null;
 	}
@@ -93,10 +94,10 @@ public class MultiDeclareEntities extends ContainerEntity {
 	@Override
 	public Entity getByName(String name, HashSet<Entity> searched) {
 		Entity entity = super.getByName(name, searched);
-		if (entity!=null) return entity;
+		if (entity != null) return entity;
 		if (isContainsTypeEntity()) {
 			for (Entity declaredEntitiy : getEntities()) {
-				if (declaredEntitiy instanceof TypeEntity && 
+				if (declaredEntitiy instanceof TypeEntity &&
 						declaredEntitiy.getRawName().getName().equals(name)) {
 					return declaredEntitiy;
 				}

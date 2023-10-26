@@ -28,8 +28,7 @@ class TemplateParameterASTVisitor extends ASTVisitor{
 
 	@Override
 	public int visit(IASTName name) {
-		if (name instanceof CPPASTTemplateId) {
-			final CPPASTTemplateId templateId = (CPPASTTemplateId) name;
+		if (name instanceof CPPASTTemplateId templateId) {
 			for (IASTNode argument:templateId.getTemplateArguments()) {
 				if (argument instanceof IASTTypeId) {
 					IASTDeclSpecifier decl = ((IASTTypeId) argument).getDeclSpecifier();

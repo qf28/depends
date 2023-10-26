@@ -39,12 +39,7 @@ public class OrderedMatrixGenerator  {
 	public DependencyMatrix build() {
 	    ArrayList<String> reMappedNodes= new ArrayList<>(matrix.getNodes());
 	    //sort nodes by name
-	    reMappedNodes.sort(new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				return o1.compareTo(o2);
-			}
-		});
+		reMappedNodes.sort((o1, o2) -> o1.compareTo(o2));
 	    
 	    DependencyMatrix ordered = new DependencyMatrix((int)(matrix.getDependencyPairs().size()/0.75+1),null,matrix.isOutputSelfDependencies());
 		HashMap<String, Integer> nodesMap = new HashMap<>();

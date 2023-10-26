@@ -79,7 +79,7 @@ public class JavaImportLookupStrategy extends ImportLookupStrategy{
 				//expand import of package to all classes under the package due to we dis-courage the behavior
 				for (Entity child:imported.getChildren()) {
 					if (child instanceof FileEntity) {
-						child.getChildren().forEach(item->result.add(item));
+						result.addAll(child.getChildren());
 					}else {
 						result.add(child);
 					}
@@ -93,7 +93,7 @@ public class JavaImportLookupStrategy extends ImportLookupStrategy{
 
 	@Override
 	public List<Entity> getImportedFiles(List<Import> importedList) {
-		return new ArrayList<Entity>();
+		return new ArrayList<>();
 	}
 
 

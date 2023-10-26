@@ -43,6 +43,39 @@ public class MatrixLevelReducer {
 		this.level = stringToPositiveInt(levelString);
 	}
 
+	public static String calcuateNodeAtLevel(String node, int level) {
+		String splitterRegex = "\\.";
+		String splitter = ".";
+		String windowsSplitter = "\\";
+		String unixSplitter = "/";
+
+		if (node.contains(windowsSplitter)) {
+			splitter = windowsSplitter;
+			splitterRegex = windowsSplitter+windowsSplitter;
+		}else if (node.contains(unixSplitter)) {
+			splitter = unixSplitter;
+			splitterRegex = unixSplitter;
+		}
+		String prefix = "";
+		if (node.startsWith(splitter)) {
+			prefix = splitter;
+		}
+		String[] segments = node.split(splitterRegex);
+		StringBuilder sb = new StringBuilder();
+		int count = 0;
+		for (String segment : segments) {
+			if (count == level)
+				break;
+			if (segment.length() > 0) {
+				if (sb.length() > 0)
+					sb.append(splitter);
+				sb.append(segment);
+				count++;
+			}
+		}
+		return prefix + sb.toString();
+	}
+
 	public DependencyMatrix shrinkToLevel() {
 		if (level < 0)
 			return origin;
@@ -55,12 +88,7 @@ public class MatrixLevelReducer {
 			}
 		}
 		// sort nodes by name
-		reMappedNodes.sort(new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				return o1.compareTo(o2);
-			}
-		});
+		reMappedNodes.sort((o1, o2) -> o1.compareTo(o2));
 	    DependencyMatrix ordered = new DependencyMatrix(0,null,false);
 		for (int id=0;id<reMappedNodes.size();id++) {
 			nodesMap.put(reMappedNodes.get(id), id);
@@ -75,39 +103,6 @@ public class MatrixLevelReducer {
 			}
 		}
 		return ordered;
-	}
-
-	public static String calcuateNodeAtLevel(String node, int level) {
-		String splitterRegex = "\\.";
-		String splitter = ".";
-		String windowsSplitter = "\\";
-		String unixSplitter = "/";
-		
-		if (node.contains(windowsSplitter)) {
-			splitter = windowsSplitter;
-			splitterRegex = windowsSplitter+windowsSplitter;
-		}else if (node.contains(unixSplitter)) {
-			splitter = unixSplitter;
-			splitterRegex = unixSplitter;		
-		}
-		String prefix = "";
-		if (node.startsWith(splitter)) {
-			prefix = splitter;
-		}
-		String[] segments = node.split(splitterRegex);
-		StringBuffer sb = new StringBuffer();
-		int count = 0;
-		for (int i = 0; i < segments.length; i++) {
-			if (count == level)
-				break;
-			if (segments[i].length() > 0) {
-				if (sb.length()>0)
-					sb.append(splitter);
-				sb.append(segments[i]);
-				count++;
-			}
-		}
-		return prefix + sb.toString();
 	}
 
 	private Integer translateToNewId(Integer id) {

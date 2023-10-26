@@ -45,23 +45,21 @@ public class MacroExtractor {
 	}
 
 	public void extract(CppHandlerContext context) {
-		for (int statementIndex=0;statementIndex<statements.length;statementIndex++) {
-			if (statements[statementIndex] instanceof IASTPreprocessorFunctionStyleMacroDefinition) {
-				IASTPreprocessorFunctionStyleMacroDefinition funcMacro = (IASTPreprocessorFunctionStyleMacroDefinition)statements[statementIndex];
-				if (!funcMacro.getFileLocation().getFileName().equals(fileLocation))
-					continue;
-				String func = funcMacro.getName().getRawSignature();
-				FunctionEntity funcEntity = context.foundMethodDeclarator(func, TypeEntity.buildInType.getRawName().uniqName(), new ArrayList<>(),funcMacro.getFileLocation().getStartingLineNumber());
-				funcEntity.setLine(funcMacro.getFileLocation().getStartingLineNumber());
-				context.exitLastedEntity();
-			}else if (statements[statementIndex] instanceof IASTPreprocessorObjectStyleMacroDefinition) {
-				IASTPreprocessorObjectStyleMacroDefinition varMacro = (IASTPreprocessorObjectStyleMacroDefinition)statements[statementIndex];
-				if (!varMacro.getFileLocation().getFileName().equals(fileLocation))
-					continue;
-				String var = varMacro.getName().getRawSignature();
-				VarEntity varEntity = context.foundVarDefinition(var, TypeEntity.buildInType.getRawName(), new ArrayList<>(),varMacro.getFileLocation().getStartingLineNumber());
-				varEntity.setLine(varMacro.getFileLocation().getStartingLineNumber());
-			}
-		}
+        for (IASTPreprocessorStatement statement : statements) {
+            if (statement instanceof IASTPreprocessorFunctionStyleMacroDefinition funcMacro) {
+                if (!funcMacro.getFileLocation().getFileName().equals(fileLocation))
+                    continue;
+                String func = funcMacro.getName().getRawSignature();
+                FunctionEntity funcEntity = context.foundMethodDeclarator(func, TypeEntity.buildInType.getRawName().uniqName(), new ArrayList<>(), funcMacro.getFileLocation().getStartingLineNumber());
+                funcEntity.setLine(funcMacro.getFileLocation().getStartingLineNumber());
+                context.exitLastedEntity();
+            } else if (statement instanceof IASTPreprocessorObjectStyleMacroDefinition varMacro) {
+                if (!varMacro.getFileLocation().getFileName().equals(fileLocation))
+                    continue;
+                String var = varMacro.getName().getRawSignature();
+                VarEntity varEntity = context.foundVarDefinition(var, TypeEntity.buildInType.getRawName(), new ArrayList<>(), varMacro.getFileLocation().getStartingLineNumber());
+                varEntity.setLine(varMacro.getFileLocation().getStartingLineNumber());
+            }
+        }
 	}
 }

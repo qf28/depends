@@ -50,8 +50,7 @@ public class RelationCounter {
 	}
 	
 	public void computeRelations() {
-		entities.forEach(entity->
-		computeRelationOf(entity));
+		entities.forEach(this::computeRelationOf);
 	}
 
 	private void computeRelationOf(Entity entity) {
@@ -69,7 +68,7 @@ public class RelationCounter {
 		if (entity instanceof ContainerEntity) {
 			computeContainerRelations((ContainerEntity)entity);
 		}
-		entity.getChildren().forEach(child->computeRelationOf(child));
+		entity.getChildren().forEach(this::computeRelationOf);
 	}
 
 	
@@ -131,8 +130,7 @@ public class RelationCounter {
 					entity.addRelation(buildRelation(entity,DependencyType.CALL,referredEntity,expression.getLocation(), possibleDependency));
 				}else {
 					Entity multiDeclare = repo.getEntity(referredEntity.getQualifiedName());
-					if (multiDeclare instanceof MultiDeclareEntities) {
-						MultiDeclareEntities m = (MultiDeclareEntities) multiDeclare;
+					if (multiDeclare instanceof MultiDeclareEntities m) {
 						List<Entity> entities = m.getEntities().stream().filter(item -> (item instanceof FunctionEntityImpl))
 								.collect(Collectors.toList());
 						for (Entity e : entities) {
@@ -231,8 +229,7 @@ public class RelationCounter {
 		for (Entity type:func.getResolvedTypeParameters()) {
 			func.addRelation(buildRelation(func,DependencyType.PARAMETER,type));
 		}
-		if (func instanceof FunctionEntityImpl) {
-			FunctionEntityImpl funcImpl = (FunctionEntityImpl)func;
+		if (func instanceof FunctionEntityImpl funcImpl) {
 			if(funcImpl.getImplemented()!=null) {
 				func.addRelation(buildRelation(func,DependencyType.IMPLEMENT,funcImpl.getImplemented()));
 			}

@@ -28,9 +28,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -57,21 +59,16 @@ public class UnsolvedSymbolDumper{
 	}
 
 	private void outputGrouped() {
-		TreeMap<String, Set<String>> grouped = new TreeMap<String, Set<String>>();
+		TreeMap<String, Set<String>> grouped = new TreeMap<>();
 		for (UnsolvedBindings symbol: unsolved) {
 			String depended = symbol.getRawName();
 			String from = leadingNameStripper.stripFilename(symbol.getSourceDisplay());
-			Set<String> list = grouped.get(depended);
-			if (list==null) {
-				list = new HashSet<>();
-				grouped.put(depended, list);
-			}
+			Set<String> list = grouped.computeIfAbsent(depended, k -> new HashSet<>());
 			list.add(from);
 		}
 		ObjectMapper om = new ObjectMapper();
-		om.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-		om.configure(SerializationFeature.INDENT_OUTPUT, true);
-		om.setSerializationInclusion(Include.NON_NULL);
+		om.enable(SerializationFeature.INDENT_OUTPUT);
+		om.configOverride(Map.class).setInclude(JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL));
 		try {
 			om.writerWithDefaultPrettyPrinter().writeValue(new File(outputDir + File.separator + name +"-PotentialExternalDependencies.json"), grouped);
 		} catch (Exception e) {
@@ -85,7 +82,7 @@ public class UnsolvedSymbolDumper{
 			writer = new PrintWriter(outputDir + File.separator + name +"-PotentialExternalDependencies.txt");
 			for (UnsolvedBindings symbol: unsolved) {
 				String source = leadingNameStripper.stripFilename(symbol.getSourceDisplay());
-            	writer.println(""+symbol.getRawName()+", "+source);
+				writer.println(symbol.getRawName() + ", " + source);
 			}
 			writer.close();
 		} catch (FileNotFoundException e) {

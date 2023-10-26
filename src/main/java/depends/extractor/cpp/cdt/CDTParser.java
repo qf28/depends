@@ -54,16 +54,12 @@ public class CDTParser {
 	}
 	
 	public IASTTranslationUnit parse(String file, Map<String, String> macroMap   ) {
-		try {
-			this.macroMap = macroMap;
-			return getTranslationUnitofCPP(file);
-		} catch (IOException e) {
-		}
-		return new CASTTranslationUnit();
+		this.macroMap = macroMap;
+		return getTranslationUnitofCPP(file);
 	}
 
-	
-	public IASTTranslationUnit getTranslationUnitofCPP(String file) throws IOException {
+
+	public IASTTranslationUnit getTranslationUnitofCPP(String file) {
 		
 		IScanner scanner = Scanner.buildScanner(file,macroMap,sysIncludePath,false);
 		if (scanner==null) return null;

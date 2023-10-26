@@ -50,7 +50,7 @@ public class DependencyType {
 	public static final String POSSIBLE_DEP = "(possible)";
 
 	public static ArrayList<String> allDependencies() {
-		ArrayList<String> depedencyTypes = new ArrayList<String>();
+        ArrayList<String> depedencyTypes = new ArrayList<>();
 		depedencyTypes.add(IMPORT);
 		depedencyTypes.add(CONTAIN);
 		depedencyTypes.add(IMPLEMENT);
