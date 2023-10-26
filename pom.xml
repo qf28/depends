@@ -13,7 +13,9 @@
 		<antlr4.visitor>true</antlr4.visitor>
 		<antlr4.listener>true</antlr4.listener>
 		<neo4j-ogm.version>3.1.9</neo4j-ogm.version>
+		<antlr.baseUri>${basedir}/src/main/antlr4/depends/extractor/</antlr.baseUri>
 	</properties>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -34,6 +36,23 @@
 				<version>4.13.1</version>
 				<executions>
 					<execution>
+						<id>import-compiler</id>
+						<configuration>
+							<libDirectory>${antlr.baseUri}/kotlin</libDirectory>
+						</configuration>
+						<goals>
+							<goal>antlr4</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>none-import-compiler</id>
+						<configuration>
+							<libDirectory>${antlr.baseUri}/cpp</libDirectory>
+							<libDirectory>${antlr.baseUri}/golang</libDirectory>
+							<libDirectory>${antlr.baseUri}/java</libDirectory>
+							<libDirectory>${antlr.baseUri}/python</libDirectory>
+							<libDirectory>${antlr.baseUri}/xml</libDirectory>
+						</configuration>
 						<goals>
 							<goal>antlr4</goal>
 						</goals>
