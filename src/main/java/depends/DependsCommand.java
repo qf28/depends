@@ -51,7 +51,7 @@ public class DependsCommand {
     private String src;
 	@Parameters(index = "2",  description = "The output file name")
 	private String output;
-    @Option(names = {"-f", "--format"},split=",",  description = "the output format: [json(default),xml,excel,detail,dot,plantuml]")
+	@Option(names = {"-f", "--format"}, description = "the output format: [json(default),xml,excel,detail,dot,plantuml]")
     private String[] format=new String[]{"json"};
 	@Option(names = {"-d", "--dir"},  description = "The output directory")
 	private String dir;
@@ -59,20 +59,20 @@ public class DependsCommand {
     private boolean dv8map = true;
 	@Option(names = {"-s", "--strip-leading-path"},  description = "Strip the leading path.")
     private boolean stripLeadingPath = false;
-	@Option(names = {"--strip-paths"}, split=",", description =  "The path(s) to be stripped. if -s enabled, the path(s) start after <src>. "
+	@Option(names = {"--strip-paths"}, description = "The path(s) to be stripped. if -s enabled, the path(s) start after <src>. "
 			+ "Otherwise, the path(s) should be valid.")
 	private String[] strippedPaths = new String[]{};
 	@Option(names = {"-g", "--granularity"}, split=",",  description = "Granularity of dependency.[file(default),method,structure]")
     private String[] granularity=new String[]{"file"};
 	@Option(names = {"-p", "--namepattern"},  description = "The name path pattern.[dot(.), unix(/) or windows(\\)")
     private String namePathPattern="";
-	@Option(names = {"-i","--includes"},split=",", description = "The files of searching path")
+	@Option(names = {"-i", "--includes"}, description = "The files of searching path")
     private String[] includes = new String[] {};
-	@Option(names = {"--auto-include"},split=",", description = "auto include all paths under the source path (please notice the potential side effect)")
+	@Option(names = {"--auto-include"}, description = "auto include all paths under the source path (please notice the potential side effect)")
 	private boolean autoInclude = false;
-	@Option(names = {"--detail"},split=",", description = "add detail dependency information to output (only applicable for JSON output format)")
-	private boolean detail = false;	
-	@Option(names = {"--auto-stub"},split=",", description = "create stub files for unsolved symbols (exprimental feature, only for java)")
+	@Option(names = {"--detail"}, description = "add detail dependency information to output (only applicable for JSON output format)")
+	private boolean detail = false;
+	@Option(names = {"--auto-stub"}, description = "create stub files for unsolved symbols (exprimental feature, only for java)")
 	private boolean autoStub = false;	
 	@Option(names = {"--type-filter"},split=",",  completionCandidates = DependsCommand.SupportedTypes.class, description = "only filter the listed dependency types[${COMPLETION-CANDIDATES}]")
     private String[] typeFilter=new String[]{};
