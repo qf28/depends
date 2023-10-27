@@ -48,6 +48,17 @@ class KotlinListener(
         super.enterImportHeader(ctx)
     }
 
+    override fun enterTypeAlias(ctx: KotlinParser.TypeAliasContext) {
+        if (ctx.typeParameters() != null) {
+            foundTypeParametersUse(ctx.typeParameters())
+        }
+        val classNames = ctx.type().usedClassNames
+        if (classNames.size == 1) {
+            context.foundNewAlias(ctx.simpleIdentifier().text, classNames[0])
+        }
+        super.enterTypeAlias(ctx)
+    }
+
     /**
      * Enter class declaration
      * ```text
