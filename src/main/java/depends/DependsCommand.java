@@ -62,7 +62,7 @@ public class DependsCommand {
 	@Option(names = {"--strip-paths"}, description = "The path(s) to be stripped. if -s enabled, the path(s) start after <src>. "
 			+ "Otherwise, the path(s) should be valid.")
 	private String[] strippedPaths = new String[]{};
-	@Option(names = {"-g", "--granularity"}, split=",",  description = "Granularity of dependency.[file(default),method,structure]")
+	@Option(names = {"-g", "--granularity"}, split=",",  description = "Granularity of dependency.[file(default),class(kotlin only),method,structure]")
     private String[] granularity=new String[]{"file"};
 	@Option(names = {"-p", "--namepattern"},  description = "The name path pattern.[dot(.), unix(/) or windows(\\)")
     private String namePathPattern="";

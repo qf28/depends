@@ -31,10 +31,7 @@ import depends.extractor.LangProcessorRegistration;
 import depends.extractor.UnsolvedBindings;
 import depends.format.DependencyDumper;
 import depends.format.detail.UnsolvedSymbolDumper;
-import depends.generator.DependencyGenerator;
-import depends.generator.FileDependencyGenerator;
-import depends.generator.FunctionDependencyGenerator;
-import depends.generator.StructureDependencyGenerator;
+import depends.generator.*;
 import depends.matrix.core.DependencyMatrix;
 import depends.relations.BindingResolver;
 import depends.relations.IBindingResolver;
@@ -74,10 +71,10 @@ public class Main {
 		} catch (Exception e) {
 			if (e instanceof PicocliException) {
 				CommandLine.usage(new DependsCommand(), System.out);
-			} else if (e instanceof ParameterException){
+			} else if (e instanceof ParameterException) {
 				System.err.println(e.getMessage());
-			}else {
-				System.err.println("Exception encountered. If it is a design error, please report issue to us." );
+			} else {
+				System.err.println("Exception encountered. If it is a design error, please report issue to us.");
 				e.printStackTrace();
 			}
 			System.exit(0);
@@ -87,9 +84,9 @@ public class Main {
 	private static void verifyParameters(DependsCommand args) throws ParameterException {
 		String[] granularities = args.getGranularity();
 		List<String> validGranularities = Arrays.asList("file", "method", "structure");
-		for (String g:granularities){
-			if (!validGranularities.contains(g)){
-				throw  new ParameterException("granularity is invalid:"+g);
+		for (String g : granularities) {
+			if (!validGranularities.contains(g)) {
+				throw new ParameterException("granularity is invalid:" + g);
 			}
 		}
 	}
@@ -108,7 +105,7 @@ public class Main {
 		if (args.isAutoInclude()) {
 			includeDir = appendAllFoldersToIncludePath(inputDir, includeDir);
 		}
-			
+
 		AbstractLangProcessor langProcessor = LangProcessorRegistration.getRegistry().getProcessorOf(lang);
 		if (langProcessor == null) {
 			System.err.println("Not support this language: " + lang);
@@ -121,31 +118,31 @@ public class Main {
 		//step1: build data
 		EntityRepo entityRepo = langProcessor.buildDependencies(inputDir, includeDir, bindingResolver);
 
-		new RelationCounter(entityRepo,langProcessor, bindingResolver).computeRelations();
+		new RelationCounter(entityRepo, langProcessor, bindingResolver).computeRelations();
 		System.out.println("Dependency done....");
 
 		//step2: generate dependencies matrix
 		List<DependencyGenerator> dependencyGenerators = getDependencyGenerators(args, inputDir);
-		for (DependencyGenerator dependencyGenerator:dependencyGenerators) {
+		for (DependencyGenerator dependencyGenerator : dependencyGenerators) {
 			DependencyMatrix matrix = dependencyGenerator.identifyDependencies(entityRepo, args.getTypeFilter());
 			DependencyDumper output = new DependencyDumper(matrix);
-			output.outputResult(outputName+"-"+dependencyGenerator.getType(), outputDir, outputFormat);
+			output.outputResult(outputName + "-" + dependencyGenerator.getType(), outputDir, outputFormat);
 		}
 
 		if (args.isOutputExternalDependencies()) {
 			Set<UnsolvedBindings> unsolved = langProcessor.getExternalDependencies();
-	    	UnsolvedSymbolDumper unsolvedSymbolDumper = new UnsolvedSymbolDumper(unsolved,args.getOutputName(),args.getOutputDir(),
-	    			new LeadingNameStripper(args.isStripLeadingPath(),inputDir,args.getStrippedPaths()));
-	    	unsolvedSymbolDumper.output();
+			UnsolvedSymbolDumper unsolvedSymbolDumper = new UnsolvedSymbolDumper(unsolved, args.getOutputName(), args.getOutputDir(),
+					new LeadingNameStripper(args.isStripLeadingPath(), inputDir, args.getStrippedPaths()));
+			unsolvedSymbolDumper.output();
 		}
 		long endTime = System.currentTimeMillis();
 		TemporaryFile.getInstance().delete();
 		CacheManager.create().shutdown();
 		System.out.println("Consumed time: " + (float) ((endTime - startTime) / 1000.00) + " s,  or "
 				+ (float) ((endTime - startTime) / 60000.00) + " min.");
-		if ( args.isDv8map()) {
+		if (args.isDv8map()) {
 			DV8MappingFileBuilder dv8MapfileBuilder = new DV8MappingFileBuilder(langProcessor.supportedRelations());
-			dv8MapfileBuilder.create(outputDir+ File.separator+"depends-dv8map.mapping");
+			dv8MapfileBuilder.create(outputDir + File.separator + "depends-dv8map.mapping");
 		}
 	}
 
@@ -153,29 +150,29 @@ public class Main {
 		FolderCollector includePathCollector = new FolderCollector();
 		List<String> additionalIncludePaths = includePathCollector.getFolders(inputDir);
 		additionalIncludePaths.addAll(Arrays.asList(includeDir));
-		includeDir = additionalIncludePaths.toArray(new String[] {});
+		includeDir = additionalIncludePaths.toArray(new String[]{});
 		return includeDir;
 	}
 
 	private static List<DependencyGenerator> getDependencyGenerators(DependsCommand app, String inputDir) throws ParameterException {
 		FilenameWritter filenameWritter = new EmptyFilenameWritter();
 		if (!StringUtils.isEmpty(app.getNamePathPattern())) {
-			if (app.getNamePathPattern().equals("dot")||
+			if (app.getNamePathPattern().equals("dot") ||
 					app.getNamePathPattern().equals(".")) {
 				filenameWritter = new DotPathFilenameWritter();
-			}else if (app.getNamePathPattern().equals("unix")||
+			} else if (app.getNamePathPattern().equals("unix") ||
 					app.getNamePathPattern().equals("/")) {
 				filenameWritter = new UnixPathFilenameWritter();
-			}else if (app.getNamePathPattern().equals("windows")||
+			} else if (app.getNamePathPattern().equals("windows") ||
 					app.getNamePathPattern().equals("\\")) {
 				filenameWritter = new WindowsPathFilenameWritter();
-			}else{
+			} else {
 				throw new ParameterException("Unknown name pattern paremater:" + app.getNamePathPattern());
 			}
 		}
 
 		List<DependencyGenerator> dependencyGenerators = new ArrayList<>();
-		for (int i=0;i<app.getGranularity().length;i++) {
+		for (int i = 0; i < app.getGranularity().length; i++) {
 			/* by default use file dependency generator */
 			DependencyGenerator dependencyGenerator = null;
 			/* method parameter means use method generator */
@@ -185,6 +182,10 @@ public class Main {
 				dependencyGenerator = new FileDependencyGenerator();
 			else if (app.getGranularity()[i].equals("structure"))
 				dependencyGenerator = new StructureDependencyGenerator();
+			else if (app.getGranularity()[i].equals(ClassDependencyGenerator.TYPE)
+					&& "kotlin".equals(app.getLang())) {
+				dependencyGenerator = new ClassDependencyGenerator();
+			}
 
 			dependencyGenerators.add(dependencyGenerator);
 			if (app.isStripLeadingPath() ||
