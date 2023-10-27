@@ -20,7 +20,7 @@ public class KotlinProcessor extends AbstractLangProcessor {
 
 	@Override
 	public String supportedLanguage() {
-		return "kotlin[on-going]";
+		return "kotlin";
 	}
 
 	@Override
