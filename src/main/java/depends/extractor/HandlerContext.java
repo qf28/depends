@@ -214,7 +214,7 @@ public abstract class HandlerContext {
 		
 	}
 
-	public void foundTypeParametes(GenericName typeName) {
+	public void foundTypeParameters(GenericName typeName) {
 		lastContainer().addTypeParameter(typeName);
 	}
 

@@ -328,7 +328,7 @@ public class JavaListener extends JavaParserBaseListener {
 			TypeParameterContext typeParam = typeParameters.typeParameter(i);
 			if (typeParam.typeBound() != null) {
 				for (int j = 0; j < typeParam.typeBound().typeType().size(); j++) {
-					context.foundTypeParametes(GenericName.build(ClassTypeContextHelper.getClassName(typeParam.typeBound().typeType(j))));
+					context.foundTypeParameters(GenericName.build(ClassTypeContextHelper.getClassName(typeParam.typeBound().typeType(j))));
 				}
 			}
 			context.currentType().addTypeParameter(GenericName.build(typeParam.IDENTIFIER().getText()));
