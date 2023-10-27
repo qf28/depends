@@ -188,6 +188,10 @@ public abstract class HandlerContext {
 		return null;
 	}
 
+	public void foundImplements(String className) {
+		foundImplements(GenericName.build(className));
+	}
+
 	public void foundImplements(GenericName typeName) {
 		currentType().addImplements(typeName);
 	}
