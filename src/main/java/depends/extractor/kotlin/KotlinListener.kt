@@ -4,10 +4,12 @@ import depends.entity.GenericName
 import depends.entity.repo.EntityRepo
 import depends.extractor.kotlin.KotlinParser.ImportHeaderContext
 import depends.extractor.kotlin.KotlinParser.PackageHeaderContext
+import depends.extractor.kotlin.context.ExpressionUsage
 import depends.extractor.kotlin.utils.usedClassName
 import depends.extractor.kotlin.utils.usedClassNames
 import depends.importtypes.ExactMatchImport
 import depends.relations.IBindingResolver
+import org.antlr.v4.runtime.ParserRuleContext
 import org.slf4j.LoggerFactory
 
 
@@ -22,14 +24,31 @@ class KotlinListener(
     }
 
     private val context: KotlinHandlerContext
+    private val expressionUsage: ExpressionUsage
 
     init {
         context = KotlinHandlerContext(entityRepo, bindingResolver)
         context.startFile(fileFullPath)
+        expressionUsage = ExpressionUsage(context, entityRepo)
     }
 
     private fun exitLastEntity() {
         context.exitLastedEntity()
+    }
+
+    override fun enterEveryRule(ctx: ParserRuleContext) {
+        expressionUsage.foundExpression(ctx)
+        super.enterEveryRule(ctx)
+    }
+
+    override fun enterExpression(ctx: KotlinParser.ExpressionContext?) {
+        expressionUsage.exprStart = true
+        super.enterExpression(ctx)
+    }
+
+    override fun exitExpression(ctx: KotlinParser.ExpressionContext?) {
+        expressionUsage.exprStart = false
+        super.enterExpression(ctx)
     }
 
     override fun enterPackageHeader(ctx: PackageHeaderContext) {
