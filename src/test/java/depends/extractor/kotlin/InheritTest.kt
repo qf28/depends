@@ -3,8 +3,8 @@ package depends.extractor.kotlin
 import depends.deptypes.DependencyType
 import org.junit.Before
 import org.junit.Test
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class InheritTest : KotlinParserTest() {
     @Before
@@ -65,5 +65,31 @@ class InheritTest : KotlinParserTest() {
         assertEquals(1, relations.size)
         assertEquals(DependencyType.INHERIT, relations[0].type)
         assertEquals("ParentInherit2", relations[0].entity.rawName.name)
+    }
+
+    @Test
+    fun shouldHandleInheritSuccess3() {
+        val src0 = "./src/test/resources/kotlin-code-examples/inherit/inherit3/ChildInherit3.kt"
+        val src1 = "./src/test/resources/kotlin-code-examples/inherit/inherit3/ParentInherit3.kt"
+        val src2 = "./src/test/resources/kotlin-code-examples/inherit/inherit3/InterfaceInherit3.kt"
+        val parser = createParser()
+        parser.parse(src0)
+        parser.parse(src1)
+        parser.parse(src2)
+        resolveAllBindings()
+        val relations = entityRepo.getEntity("${myPackageName}3.ChildInherit3").relations
+        assertEquals(3, relations.size)
+        assertEquals(
+                setOf(DependencyType.INHERIT, DependencyType.IMPLEMENT),
+                relations.map { it.type }.toSet()
+        )
+        for (relation in relations) {
+            if (relation.type == DependencyType.INHERIT) {
+                assertEquals("ParentInherit3", relation.entity.rawName.name)
+            } else {
+                assertTrue(relation.entity.rawName.name == "InterfaceInherit3"
+                        || relation.entity.rawName.name == "built-in")
+            }
+        }
     }
 }

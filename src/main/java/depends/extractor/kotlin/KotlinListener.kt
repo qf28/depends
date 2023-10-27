@@ -89,6 +89,31 @@ class KotlinListener(
     }
 
     /**
+     * Enter object declaration
+     * ```text
+     * objectDeclaration
+     * : modifiers? OBJECT
+     * NL* simpleIdentifier // done
+     * (NL* COLON NL* delegationSpecifiers)? // done
+     * (NL* classBody)?
+     * ;
+     * ```
+     * @param ctx
+     */
+    override fun enterObjectDeclaration(ctx: KotlinParser.ObjectDeclarationContext) {
+        context.foundNewType(GenericName.build(ctx.simpleIdentifier().text), ctx.start.line)
+        if (ctx.delegationSpecifiers() != null) {
+            foundDelegationSpecifiersUse(ctx.delegationSpecifiers())
+        }
+        super.enterObjectDeclaration(ctx)
+    }
+
+    override fun exitObjectDeclaration(ctx: KotlinParser.ObjectDeclarationContext?) {
+        context.exitLastedEntity()
+        super.exitObjectDeclaration(ctx)
+    }
+
+    /**
      * Found type parameters use
      * 将泛型的模板类型和约束类型注册到上下文
      * ```kotlin
