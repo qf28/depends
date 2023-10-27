@@ -41,9 +41,9 @@ class KotlinListener(
 
     override fun enterImportHeader(ctx: ImportHeaderContext) {
         context.foundNewImport(ExactMatchImport(ContextHelper.getName(ctx.identifier())))
-        //TODO: alias of import
-        if (ctx.importAlias() != null) {
-
+        val alias = ctx.importAlias()
+        if (alias != null) {
+            context.foundNewAlias(alias.simpleIdentifier().text, ctx.identifier().text)
         }
         super.enterImportHeader(ctx)
     }
