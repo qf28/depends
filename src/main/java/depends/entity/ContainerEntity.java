@@ -100,7 +100,7 @@ public abstract class ContainerEntity extends DecoratedEntity {
 
 	public HashMap<Object, Expression> expressions() {
 		if (expressionWeakReference==null)
-			expressionWeakReference= new WeakReference<HashMap<Object, Expression>>(new HashMap<>());
+			expressionWeakReference = new WeakReference<>(new HashMap<>());
 		HashMap<Object, Expression> r = expressionWeakReference.get();
 		if (r==null) return new HashMap<>();
 		return r;
@@ -146,7 +146,7 @@ public abstract class ContainerEntity extends DecoratedEntity {
 	}
 
 	private Collection<ContainerEntity> identiferToContainerEntity(IBindingResolver bindingResolver, Collection<GenericName> identifiers) {
-		if (identifiers.size()==0) return null;
+		if (identifiers.isEmpty()) return null;
 		ArrayList<ContainerEntity> r = new ArrayList<>();
 		for (GenericName identifier : identifiers) {
 			Entity entity = bindingResolver.resolveName(this, identifier, true);
@@ -161,8 +161,7 @@ public abstract class ContainerEntity extends DecoratedEntity {
 
 	/**
 	 * Resolve all expression's type
-	 * 
-	 * @param bindingResolver
+	 *
 	 */
 	public void resolveExpressions(IBindingResolver bindingResolver) {
 		if (this instanceof FunctionEntity) {
@@ -286,9 +285,9 @@ public abstract class ContainerEntity extends DecoratedEntity {
 	         }
 	         in.close();
 	         fileIn.close();
-	      }catch(IOException | ClassNotFoundException i)
+		  } catch (IOException | ClassNotFoundException i)
 	      {
-	         return;
+			  i.printStackTrace();
 	      }
 	}
 	
@@ -300,7 +299,7 @@ public abstract class ContainerEntity extends DecoratedEntity {
 	}
 
 	public boolean containsExpression() {
-		return expressions().size() > 0;
+		return !expressions().isEmpty();
 	}
 	
 	/**
@@ -353,7 +352,7 @@ public abstract class ContainerEntity extends DecoratedEntity {
 						return child;
 				}
 			}
-			fromEntity = (ContainerEntity) this.getAncestorOfType(ContainerEntity.class);
+			fromEntity = this.getAncestorOfType(ContainerEntity.class);
 		}
 		return null;
 	}
@@ -397,7 +396,7 @@ public abstract class ContainerEntity extends DecoratedEntity {
 	private Entity lookupVarBottomUpTillTopContainer(GenericName varName, ContainerEntity fromEntity) {
 		while (fromEntity != null) {
 			if (fromEntity instanceof ContainerEntity) {
-				VarEntity var = ((ContainerEntity) fromEntity).lookupVarLocally(varName);
+				VarEntity var = fromEntity.lookupVarLocally(varName);
 				if (var != null)
 					return var;
 			}

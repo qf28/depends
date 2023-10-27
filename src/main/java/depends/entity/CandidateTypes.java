@@ -206,9 +206,9 @@ public class CandidateTypes extends TypeEntity {
 	}
 
 	@Override
-	protected Collection<Entity> identiferToEntities(IBindingResolver bindingResolver, Collection<GenericName> identifiers) {
+	protected Collection<Entity> identifierToEntities(IBindingResolver bindingResolver, Collection<GenericName> identifiers) {
 		System.err.println("error: identiferToTypes should not been invoked");
-		return super.identiferToEntities(bindingResolver, identifiers);
+		return super.identifierToEntities(bindingResolver, identifiers);
 	}
 
 	@Override

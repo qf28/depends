@@ -74,7 +74,7 @@ public abstract class DecoratedEntity extends Entity{
 //				) {
 //			System.out.print("dd");
 //		}
-		resolvedAnnotations = identiferToEntities(bindingResolver, annotations);
+		resolvedAnnotations = identifierToEntities(bindingResolver, annotations);
 	}
 
 
@@ -124,7 +124,7 @@ public abstract class DecoratedEntity extends Entity{
 	 * @param identifiers - the identifiers will be translated
 	 * @return The translated Types
 	 */
-	protected Collection<Entity> identiferToEntities(IBindingResolver bindingResolver, Collection<GenericName> identifiers) {
+	protected Collection<Entity> identifierToEntities(IBindingResolver bindingResolver, Collection<GenericName> identifiers) {
 		if (identifiers==null) return null;
 		if (identifiers.size()==0) return null;
 		ArrayList<Entity> r = new ArrayList<>();

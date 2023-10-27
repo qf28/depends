@@ -43,12 +43,7 @@ public abstract class HandlerContext {
 	protected IBindingResolver bindingResolver;
 
 	
-	public HandlerContext(EntityRepo entityRepo, IBindingResolver bindingResolver) {
-		this.entityRepo = entityRepo;
-		this.idGenerator = entityRepo;
-		entityStack = new Stack<Entity>();
-		this.bindingResolver = bindingResolver;
-	}
+	protected Stack<Entity> entityStack;
 
 	public FileEntity startFile(boolean fileAsModule, String fileName) {
 		currentFileEntity = new FileEntity(fileAsModule, fileName, idGenerator.generateId(),true);
@@ -94,24 +89,11 @@ public abstract class HandlerContext {
 		return currentTypeEntity;		
 	}
 	
-	/**
-	 * Tell the context that a new method was found.
-	 * Do not forget to tell the context leave the method when you finish
-	 * the process of the method
-	 * @param methodName
-	 * @param returnType  - if no return type information avaliable, keep it as null;
-	 * @param throwedType - if no throwed type information avaliable, keep it as empty list;  
-	 * @return the new function enity
-	 */
-	public FunctionEntity foundMethodDeclarator(String methodName, String returnType, List<String> throwedType, Integer startLine) {
-		FunctionEntity functionEntity = new FunctionEntity(GenericName.build(methodName), this.latestValidContainer(),
-				idGenerator.generateId(),GenericName.build(returnType));
-		functionEntity.setLine(startLine);
-		addToRepo(functionEntity);
-		this.typeOrFileContainer().addFunction(functionEntity);
-		pushToStack(functionEntity);
-		functionEntity.addThrowTypes(throwedType.stream().map(item->GenericName.build(item)).collect(Collectors.toList()));
-		return functionEntity;
+	public HandlerContext(EntityRepo entityRepo, IBindingResolver bindingResolver) {
+		this.entityRepo = entityRepo;
+		this.idGenerator = entityRepo;
+		entityStack = new Stack<>();
+		this.bindingResolver = bindingResolver;
 	}
 	
 	public FunctionEntity foundMethodDeclarator(String methodName, Integer startLine) {
@@ -206,6 +188,10 @@ public abstract class HandlerContext {
 		return null;
 	}
 
+	public void foundImplements(String className) {
+		foundImplements(GenericName.build(className));
+	}
+
 	public void foundImplements(GenericName typeName) {
 		currentType().addImplements(typeName);
 	}
@@ -232,7 +218,7 @@ public abstract class HandlerContext {
 		
 	}
 
-	public void foundTypeParametes(GenericName typeName) {
+	public void foundTypeParameters(GenericName typeName) {
 		lastContainer().addTypeParameter(typeName);
 	}
 
@@ -294,8 +280,26 @@ public abstract class HandlerContext {
 		GenericName type = lastContainer().getRawName();
 		return foundVarDefinition(varName,type,new ArrayList<>(),line);
 	}
-	
-	protected Stack<Entity> entityStack = new Stack<Entity>();
+
+	/**
+	 * Tell the context that a new method was found.
+	 * Do not forget to tell the context leave the method when you finish
+	 * the process of the method
+	 * @param methodName
+	 * @param returnType  - if no return type information avaliable, keep it as null;
+	 * @param throwedType - if no throwed type information avaliable, keep it as empty list;
+	 * @return the new function enity
+	 */
+	public FunctionEntity foundMethodDeclarator(String methodName, String returnType, List<String> throwedType, Integer startLine) {
+		FunctionEntity functionEntity = new FunctionEntity(GenericName.build(methodName), this.latestValidContainer(),
+				idGenerator.generateId(),GenericName.build(returnType));
+		functionEntity.setLine(startLine);
+		addToRepo(functionEntity);
+		this.typeOrFileContainer().addFunction(functionEntity);
+		pushToStack(functionEntity);
+		functionEntity.addThrowTypes(throwedType.stream().map(GenericName::build).collect(Collectors.toList()));
+		return functionEntity;
+	}
 
 	protected void pushToStack(Entity entity) {
 		entityStack.push(entity);
@@ -313,7 +317,7 @@ public abstract class HandlerContext {
 		if (entity ==null ) return null;
 		Entity fileEntity = entity.getAncestorOfType(FileEntity.class);
 		if (fileEntity ==null ){
-			//may not exist in fileEntity, for example global vars
+			//TODO may not exist in fileEntity, for example global vars
 		}else{
 			if (!fileEntity.equals(currentFileEntity)) return null;
 			if (entity instanceof VarEntity) return (VarEntity)entity;

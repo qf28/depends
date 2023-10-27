@@ -26,8 +26,7 @@ public class PythonImportLookupStrategy extends ImportLookupStrategy {
 	public Entity lookupImportedType(String name, FileEntity fileEntity) {
 		List<Import> importedNames = fileEntity.getImportedNames();
 		for (Import importedItem:importedNames) {
-			if (importedItem instanceof NameAliasImport) {
-				NameAliasImport nameAliasImport = (NameAliasImport)importedItem;
+			if (importedItem instanceof NameAliasImport nameAliasImport) {
 				if (name.equals(nameAliasImport.getAlias())) {
 					return nameAliasImport.getEntity();
 				}
@@ -39,15 +38,7 @@ public class PythonImportLookupStrategy extends ImportLookupStrategy {
 	@Override
 	public Collection<Entity> getImportedRelationEntities(List<Import> importedNames) {
 		Collection<Entity> files = getImportedFiles(importedNames);
-		Collection<Entity> filescontainsTypes = this.getImportedTypes(importedNames, new HashSet<>()).stream().map(e->{
-			return e.getAncestorOfType(FileEntity.class);
-		}).filter(new Predicate<Entity>() {
-
-			@Override
-			public boolean test(Entity t) {
-				return t!=null;
-			}
-		}).collect(Collectors.toSet());
+		Collection<Entity> filescontainsTypes = this.getImportedTypes(importedNames, new HashSet<>()).stream().map(e -> e.getAncestorOfType(FileEntity.class)).filter(t -> t != null).collect(Collectors.toSet());
 		
 		
 		return CollectionUtils.union(files, filescontainsTypes);
@@ -57,8 +48,7 @@ public class PythonImportLookupStrategy extends ImportLookupStrategy {
 	public Collection<Entity> getImportedTypes(List<Import> importedNames, Set<UnsolvedBindings> unsolvedBindings) {
 		Set<Entity> result = new HashSet<>();
 		for (Import importedItem:importedNames) {
-			if (importedItem instanceof NameAliasImport) {
-				NameAliasImport nameAliasImport = (NameAliasImport)importedItem;
+			if (importedItem instanceof NameAliasImport nameAliasImport) {
 				Entity imported = nameAliasImport.getEntity();
 				if (imported==null) {
 					unsolvedBindings.add(new UnsolvedBindings(importedItem.getContent(),null));
@@ -66,8 +56,7 @@ public class PythonImportLookupStrategy extends ImportLookupStrategy {
 				}				
 				result.add(imported);
 			}
-			if (importedItem instanceof FileImport) {
-				FileImport fileImport = (FileImport)importedItem;
+			if (importedItem instanceof FileImport fileImport) {
 				Entity imported = (repo.getEntity(fileImport.getContent()));
 				if (imported!=null) {
 					result.add(imported);

@@ -93,7 +93,7 @@ public class BindingResolver implements IBindingResolver{
 
 	@Override
 	public Collection<Entity> getImportedTypes(List<Import> importedNames, FileEntity fileEntity) {
-		HashSet<UnsolvedBindings> unsolved = new HashSet<UnsolvedBindings>();
+		HashSet<UnsolvedBindings> unsolved = new HashSet<>();
 		Collection<Entity> result = importLookupStrategy.getImportedTypes(importedNames,unsolved);
 		for (UnsolvedBindings item:unsolved) {
 			item.setFromEntity(fileEntity);

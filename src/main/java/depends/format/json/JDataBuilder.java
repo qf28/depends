@@ -52,7 +52,7 @@ public class JDataBuilder {
 	}
 
 	private ArrayList<JCellObject> buildCellObjects(Collection<DependencyPair> dependencyPairs) {
-		ArrayList<JCellObject> cellObjects = new ArrayList<JCellObject>();
+		ArrayList<JCellObject> cellObjects = new ArrayList<>();
 
 		for (DependencyPair dependencyPair : dependencyPairs) {
 			Map<String, Float> valueObject = buildValueObject(dependencyPair.getDependencies());
@@ -74,12 +74,12 @@ public class JDataBuilder {
 				r.add(new DetailItem(detail.getSrc(),detail.getDest(),dependency.getType()));
 			}
 		}
-		if (r.size()==0) return null;
+		if (r.isEmpty()) return null;
 		return r;
 	}
 
 	private Map<String, Float> buildValueObject(Collection<DependencyValue> dependencies) {
-		Map<String, Float> valueObject = new HashMap<String, Float>();
+		Map<String, Float> valueObject = new HashMap<>();
 		for (DependencyValue dependency : dependencies) {
 			valueObject.put(dependency.getType(), (float) dependency.getWeight());
 		}

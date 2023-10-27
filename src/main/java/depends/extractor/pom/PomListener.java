@@ -155,10 +155,9 @@ public class PomListener extends XMLParserBaseListener {
 		if (node == null)
 			return "project";
 		node = node.getParent();
-		if (!(node instanceof ElementContext))
+		if (!(node instanceof ElementContext p))
 			return "project";
 
-		ElementContext p = (ElementContext) node;
 		String name = p.Name().get(0).getText();
 		return name;
 	}

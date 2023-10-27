@@ -47,7 +47,7 @@ public class GenericName implements Serializable{
 	}
 	public String uniqName() {
 		if (getArguments().size()==0) return new String(name);
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(name);
 		if (getArguments().size()>0) {
 			for (GenericName arg:getArguments()) {

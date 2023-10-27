@@ -44,8 +44,7 @@ public class AliasEntity extends Entity {
 	public void inferLocalLevelEntities(IBindingResolver bindingResolver) {
 		if (!(referToEntity instanceof EmptyTypeEntity)) return;
 		Entity entity = bindingResolver.resolveName(this, originName, true);
-		while(entity instanceof AliasEntity) {
-			AliasEntity aliasEntity = (AliasEntity)entity;
+		while (entity instanceof AliasEntity aliasEntity) {
 			if (this.referPath.contains(aliasEntity)) {
 				entity = null;
 				break;
@@ -63,58 +62,50 @@ public class AliasEntity extends Entity {
 	}
 
 	public Collection<Entity> getResolvedTypeParameters() {
-		if (!(referToEntity instanceof DecoratedEntity))
+		if (!(referToEntity instanceof DecoratedEntity origin))
 			return new ArrayList<>();
-		DecoratedEntity origin = (DecoratedEntity) referToEntity;
 		return origin.getResolvedTypeParameters();
 	}
 
 	public Collection<Entity> getResolvedAnnotations() {
-		if (!(referToEntity instanceof DecoratedEntity))
+		if (!(referToEntity instanceof DecoratedEntity origin))
 			return new ArrayList<>();
-		DecoratedEntity origin = (DecoratedEntity) referToEntity;
 		return origin.getResolvedAnnotations();
 	}
 
 	public ArrayList<VarEntity> getVars() {
-		if (!(referToEntity instanceof ContainerEntity))
+		if (!(referToEntity instanceof ContainerEntity origin))
 			return new ArrayList<>();
-		ContainerEntity origin = (ContainerEntity) referToEntity;
 		return origin.getVars();
 	}
 
 	public ArrayList<FunctionEntity> getFunctions() {
-		if (!(referToEntity instanceof ContainerEntity))
+		if (!(referToEntity instanceof ContainerEntity origin))
 			return new ArrayList<>();
-		ContainerEntity origin = (ContainerEntity) referToEntity;
 		return origin.getFunctions();
 	}
 
 	protected FunctionEntity lookupFunctionLocally(GenericName functionName) {
-		if (!(referToEntity instanceof ContainerEntity))
+		if (!(referToEntity instanceof ContainerEntity origin))
 			return null;
-		ContainerEntity origin = (ContainerEntity) referToEntity;
 		return origin.lookupFunctionLocally(functionName);
 	}
 
 	public List<Entity> lookupFunctionInVisibleScope(GenericName functionName) {
-		if (!(referToEntity instanceof ContainerEntity))
+		if (!(referToEntity instanceof ContainerEntity origin))
 			return null;
-		ContainerEntity origin = (ContainerEntity) referToEntity;
 		return origin.lookupFunctionInVisibleScope(functionName);
 	}
 
 	public Entity lookupVarsInVisibleScope(GenericName varName) {
-		if (!(referToEntity instanceof ContainerEntity))
+		if (!(referToEntity instanceof ContainerEntity origin))
 			return null;
-		ContainerEntity origin = (ContainerEntity) referToEntity;
 		return origin.lookupVarInVisibleScope(varName);
 	}
 
 	public Collection<ContainerEntity> getResolvedMixins() {
-		if (!(referToEntity instanceof ContainerEntity))
+		if (!(referToEntity instanceof ContainerEntity origin))
 			return new ArrayList<>();
-		ContainerEntity origin = (ContainerEntity) referToEntity;
 		return origin.getResolvedMixins();
 	}
 
@@ -137,9 +128,8 @@ public class AliasEntity extends Entity {
 	}
 
 	public Collection<Entity> getReturnTypes() {
-		if (!(referToEntity instanceof FunctionEntity))
+		if (!(referToEntity instanceof FunctionEntity origin))
 			return new ArrayList<>();
-		FunctionEntity origin = (FunctionEntity) referToEntity;
 		return origin.getReturnTypes();
 	}
 
@@ -148,16 +138,14 @@ public class AliasEntity extends Entity {
 	}
 
 	public Collection<VarEntity> getParameters() {
-		if (!(referToEntity instanceof FunctionEntity))
+		if (!(referToEntity instanceof FunctionEntity origin))
 			return new ArrayList<>();
-		FunctionEntity origin = (FunctionEntity) referToEntity;
 		return origin.getParameters();
 	}
 
 	public Collection<Entity> getThrowTypes() {
-		if (!(referToEntity instanceof FunctionEntity))
+		if (!(referToEntity instanceof FunctionEntity origin))
 			return new ArrayList<>();
-		FunctionEntity origin = (FunctionEntity) referToEntity;
 		return origin.getThrowTypes();
 	}
 

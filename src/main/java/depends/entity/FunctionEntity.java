@@ -85,14 +85,14 @@ public class FunctionEntity extends ContainerEntity{
 			param.inferLocalLevelEntities(bindingResolver);
 		}
 		if (returnTypes.size()<returnTypeIdentifiers.size()) {
-			returnTypes = identiferToEntities(bindingResolver,this.returnTypeIdentifiers);
+			returnTypes = identifierToEntities(bindingResolver,this.returnTypeIdentifiers);
 			for ( GenericName returnTypeName: returnTypeIdentifiers) {
 				Collection<Entity> typeEntities = typeParametersToEntities(bindingResolver, returnTypeName);
 				this.appendTypeParameters(typeEntities);
 			}
 		}
 		if (throwTypes.size()<throwTypesIdentifiers.size())
-			throwTypes = identiferToEntities(bindingResolver,this.throwTypesIdentifiers);
+			throwTypes = identifierToEntities(bindingResolver,this.throwTypesIdentifiers);
 		super.inferLocalLevelEntities(bindingResolver);
 	}
 	

@@ -49,7 +49,7 @@ public class ExpressionUsage {
 	
 	public Expression foundExpression(IASTExpression ctx) {
 		Expression parent = findParentInStack(ctx);
-		Expression expression = null;
+		Expression expression;
 		if (parent!=null && ctx.getParent()!=null && (ctx.getParent().getChildren().length==1)){
 			expression = parent;
 		}else {
@@ -65,10 +65,10 @@ public class ExpressionUsage {
 			return expression;
 		}
 		expression.setSet(expression.isSet() || isSet(ctx));
-		expression.setCall(expression.isCall() || (ctx instanceof IASTFunctionCallExpression)?true:false);
+		expression.setCall(expression.isCall() || (ctx instanceof IASTFunctionCallExpression));
 		expression.setLogic(expression.isLogic() || isLogic(ctx));
 		if (ctx instanceof ICPPASTNewExpression){
-			expression.setCreate(true);;
+			expression.setCreate(true);
 		}		
 		expression.setDot(expression.isDot() || isDot(ctx));
 
@@ -139,8 +139,7 @@ public class ExpressionUsage {
 		if (f instanceof IASTIdExpression) {
 			return GenericName.build(ASTStringUtilExt.getName(((IASTIdExpression)f).getName()));
 		}
-		if (f instanceof  IASTFieldReference){
-			IASTFieldReference func = (IASTFieldReference) f;
+		if (f instanceof IASTFieldReference func) {
 			return GenericName.build(ASTStringUtilExt.getName(func.getFieldName()));
 		}
 		return null;
@@ -154,8 +153,7 @@ public class ExpressionUsage {
 		}
 		if (ctx instanceof  IASTFunctionCallExpression){
 			if (ctx.getChildren().length>0){
-				if (ctx.getChildren()[0] instanceof IASTFieldReference)
-					return true;
+				return ctx.getChildren()[0] instanceof IASTFieldReference;
 			}
 		}
 		return false;
@@ -164,18 +162,15 @@ public class ExpressionUsage {
 	private boolean isLogic(IASTExpression ctx) {
 		if (ctx instanceof IASTBinaryExpression) {
 			 int op = ((IASTBinaryExpression)ctx).getOperator();
-			 
-			if (op == IASTBinaryExpression.op_equals ||
+
+			return op == IASTBinaryExpression.op_equals ||
 					op == IASTBinaryExpression.op_notequals ||
 					op == IASTBinaryExpression.op_lessThan ||
 					op == IASTBinaryExpression.op_lessEqual ||
 					op == IASTBinaryExpression.op_greaterThan ||
 					op == IASTBinaryExpression.op_greaterEqual ||
 					op == IASTBinaryExpression.op_logicalAnd ||
-					op == IASTBinaryExpression.op_logicalOr 
-					) {
-				return true;
-			}
+					op == IASTBinaryExpression.op_logicalOr;
 		}
 		return false;
 	}
@@ -190,12 +185,7 @@ public class ExpressionUsage {
 		}
 		if (ctx instanceof IASTUnaryExpression) {
 			 int op = ((IASTUnaryExpression)ctx).getOperator();
-			 if (op == IASTUnaryExpression.op_prefixIncr ||
-					 op == IASTUnaryExpression.op_prefixDecr ||
-					 op == IASTUnaryExpression.op_postFixIncr ||
-					 op == IASTUnaryExpression.op_postFixIncr
-					 )
-				return true;
+			return op == IASTUnaryExpression.op_prefixIncr || op == IASTUnaryExpression.op_prefixDecr || op == IASTUnaryExpression.op_postFixIncr;
 			}
 		return false;
 	}

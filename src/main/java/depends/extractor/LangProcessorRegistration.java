@@ -45,7 +45,7 @@ public class LangProcessorRegistration {
 	}
 	public Collection<String> getLangs() {
 		ArrayList<String> langs = new ArrayList<>();
-		langProcessors.values().forEach(item->{langs.add(item.supportedLanguage());});
+		langProcessors.values().forEach(item -> langs.add(item.supportedLanguage()));
 		return langs;
 	}
 }

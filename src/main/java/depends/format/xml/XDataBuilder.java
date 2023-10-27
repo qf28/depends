@@ -56,7 +56,7 @@ public class XDataBuilder {
 
 
     private ArrayList<XCell> buildCellList(Collection<DependencyPair> dependencyPairs) {
-    	ArrayList<XCell> cellList = new ArrayList<XCell>();
+        ArrayList<XCell> cellList = new ArrayList<>();
         for (DependencyPair pair : dependencyPairs) {
                 ArrayList<XDepend> xDepends = buildDependList(pair.getDependencies());
                 XCell xCell = new XCell();
@@ -69,7 +69,7 @@ public class XDataBuilder {
 	}
 
 	private ArrayList<XDepend> buildDependList(Collection<DependencyValue> dependencies) {
-		ArrayList<XDepend> dependList = new ArrayList<XDepend>();
+        ArrayList<XDepend> dependList = new ArrayList<>();
 
         for (DependencyValue dependency : dependencies) {
             XDepend xDepend = new XDepend();

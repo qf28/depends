@@ -48,17 +48,17 @@ public class EmptyImportLookupStategy extends ImportLookupStrategy {
 
 	@Override
 	public List<Entity> getImportedRelationEntities(List<Import> importedNames) {
-		return new ArrayList<Entity>();
+        return new ArrayList<>();
 	}
 
 	@Override
 	public List<Entity> getImportedTypes(List<Import> importedNames,Set<UnsolvedBindings> unsolvedBindings) {
-		return new ArrayList<Entity>();
+        return new ArrayList<>();
 	}
 
 	@Override
 	public List<Entity> getImportedFiles(List<Import> importedNames) {
-		return new ArrayList<Entity>();
+        return new ArrayList<>();
 	}
 
 	public boolean supportGlobalNameLookup() {

@@ -82,10 +82,9 @@ public class ExpressionUsage {
 			context.lastContainer().addExpression(ctx,expression);
 			expression.setParent(parent);
 		}
-		
-		
-		if (ctx instanceof Expr_stmtContext) {
-			Expr_stmtContext exprAssign = (Expr_stmtContext)ctx;
+
+
+		if (ctx instanceof Expr_stmtContext exprAssign) {
 			if (exprAssign.assign_part()!=null) {
 				expression.setSet(true);
 				expression.setIdentifier(exprAssign.testlist_star_expr().getText());

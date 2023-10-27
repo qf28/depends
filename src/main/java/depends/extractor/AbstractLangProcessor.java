@@ -125,14 +125,14 @@ abstract public class AbstractLangProcessor {
 	}
 
 	private void markAllEntitiesScope() {
-		entityRepo.getFileEntities().stream().forEach(entity -> {
+		entityRepo.getFileEntities().forEach(entity -> {
 			Entity file = entity.getAncestorOfType(FileEntity.class);
 			try {
 				if (!file.getQualifiedName().startsWith(this.inputSrcPath)) {
 					entity.setInScope(false);
 				}
 			} catch (Exception e) {
-
+				e.printStackTrace();
 			}
 		});
 	}
@@ -143,7 +143,7 @@ abstract public class AbstractLangProcessor {
 	public void resolveBindings() {
 		System.out.println("Resolve types and bindings of variables, methods and expressions....");
 		this.potentialExternalDependencies = bindingResolver.resolveAllBindings(this.isEagerExpressionResolve());
-		if (getExternalDependencies().size() > 0) {
+		if (!getExternalDependencies().isEmpty()) {
 			System.out.println("There are " + getExternalDependencies().size() + " items are potential external dependencies.");
 		}
 		System.out.println("types and bindings resolved successfully...");
@@ -154,16 +154,12 @@ abstract public class AbstractLangProcessor {
 	private final void parseAllFiles() {
 		System.out.println("Start parsing files...");
 		Set<String> phase2Files = new HashSet<>();
-		FileTraversal fileTransversal = new FileTraversal(new FileTraversal.IFileVisitor() {
-			@Override
-			public void visit(File file) {
-				String fileFullPath = file.getAbsolutePath();
-				if (!fileFullPath.startsWith(inputSrcPath)) {
-					return;
-				}
-				parseFile(fileFullPath, phase2Files);
+		FileTraversal fileTransversal = new FileTraversal(file -> {
+			String fileFullPath = file.getAbsolutePath();
+			if (!fileFullPath.startsWith(inputSrcPath)) {
+				return;
 			}
-
+			parseFile(fileFullPath, phase2Files);
 		});
 		fileTransversal.extensionFilter(this.fileSuffixes());
 		fileTransversal.travers(this.inputSrcPath);
@@ -198,7 +194,7 @@ abstract public class AbstractLangProcessor {
 	}
 
 	private List<String> buildIncludePath() {
-		includePaths = new ArrayList<String>();
+		includePaths = new ArrayList<>();
 		for (String path : includeDirs) {
 			if (FileUtils.fileExists(path)) {
 				path = FileUtil.uniqFilePath(path);

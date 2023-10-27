@@ -30,11 +30,10 @@ public class PlantUmlFormatDependencyDumper extends AbstractFormatDependencyDump
 		try {
 			writer = new PrintWriter(composeFilename()+".uml");
 			ArrayList<String> files = matrix.getNodes();
-			
-			for (int i=0;i<files.size();i++) {
-				String file = files.get(i);
-				writer.println("class " + " "+file);
-			}
+
+            for (String file : files) {
+                writer.println("class " + " " + file);
+            }
 			writer.println("@startuml");
 	        Collection<DependencyPair> dependencyPairs = matrix.getDependencyPairs();
 	        addRelations(writer,dependencyPairs); 

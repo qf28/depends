@@ -26,10 +26,7 @@ package depends.extractor.java.context;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.RuleContext;
@@ -76,13 +73,12 @@ public class AnnotationProcessor {
 			}
 			Collection<AnnotationContext> contexts = new HashSet<>();
 			mergeElements(contexts, r);
-			for (Object item : contexts) {
-				AnnotationContext annotation = (AnnotationContext) item;
-				String name = QualitiedNameContextHelper.getName(annotation.qualifiedName());
-				containers.stream().forEach(container->((ContainerEntity)container).addAnnotation(GenericName.build(name)));
+			for (AnnotationContext item : contexts) {
+				String name = QualitiedNameContextHelper.getName(item.qualifiedName());
+				containers.forEach(container -> ((ContainerEntity) container).addAnnotation(GenericName.build(name)));
 			}
 		} catch (Exception e) {
-			return;
+			e.printStackTrace();
 		}
 	}
 	
@@ -101,9 +97,8 @@ public class AnnotationProcessor {
 	private Object invokeMethod(Object r, String path) {
 		if (StringUtils.isEmpty(path))
 			return null;
-		if (r instanceof Collection) {
-			Collection<?> list = (Collection<?>) r;
-			return list.stream().map(item -> invokeMethod(item, path)).filter(item -> item != null)
+		if (r instanceof Collection<?> list) {
+			return list.stream().map(item -> invokeMethod(item, path)).filter(Objects::nonNull)
 					.collect(Collectors.toSet());
 		}
 		try {

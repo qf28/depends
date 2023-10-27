@@ -49,14 +49,24 @@ public class PreprocessorHandler {
 		buildAllFiles();
 	}
 	
-	class AllFileVisitor implements IFileVisitor{
-		@Override
-		public void visit(File file) {
-			try {
-				allFiles.add(file.getCanonicalPath());
-			} catch (IOException e) {
+	public List<String> getDirectIncludedFiles(IASTPreprocessorStatement[] statements, String fileLocation) {
+		ArrayList<String> includedFullPathNames = new ArrayList<>();
+		for (IASTPreprocessorStatement statement : statements) {
+			if (statement instanceof IASTPreprocessorIncludeStatement) {
+				IASTPreprocessorIncludeStatement incl = (IASTPreprocessorIncludeStatement) statement;
+				if (!incl.getFileLocation().getFileName().equals(fileLocation))
+					continue;
+				String path = resolveInclude(incl);
+				if (!existFile(path)) {
+					continue;
+				}
+				if (FileUtil.isDirectory(path)) {
+					continue;
+				}
+				includedFullPathNames.add(path);
 			}
 		}
+		return includedFullPathNames;
 	}
 	private void buildAllFiles() {
 		allFiles = new HashSet<>();
@@ -76,25 +86,15 @@ public class PreprocessorHandler {
 		return allFiles.contains(checkPath);
 	}
 	
-	public List<String> getDirectIncludedFiles(IASTPreprocessorStatement[] statements, String fileLocation) {
-		ArrayList<String> includedFullPathNames = new ArrayList<>();
-		for (int statementIndex=0;statementIndex<statements.length;statementIndex++) {
-			if (statements[statementIndex] instanceof IASTPreprocessorIncludeStatement)
-			{
-				IASTPreprocessorIncludeStatement incl = (IASTPreprocessorIncludeStatement)(statements[statementIndex]);
-				if (!incl.getFileLocation().getFileName().equals(fileLocation))
-					continue;
-				String path = resolveInclude(incl);
-				if (!existFile(path)) {
-					continue;
-				}
-				if (FileUtil.isDirectory(path)) {
-					continue;
-				}
-				includedFullPathNames.add(path);
+	class AllFileVisitor implements IFileVisitor{
+		@Override
+		public void visit(File file) {
+			try {
+				allFiles.add(file.getCanonicalPath());
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
-		return includedFullPathNames;
 	}
 	private String resolveInclude(IASTPreprocessorIncludeStatement incl) {
 		String path = incl.toString();

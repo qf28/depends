@@ -92,10 +92,7 @@ public class CppVisitor  extends ASTVisitor {
 	}
 
 	private boolean notLocalFile(IASTNode node) {
-		if (file.contains(node.getFileLocation().getFileName())) {
-			return false;
-		}
-		return true;
+		return !file.contains(node.getFileLocation().getFileName());
 	}
 
 	// PACKAGES
@@ -121,8 +118,7 @@ public class CppVisitor  extends ASTVisitor {
 	public int visit(IASTDeclSpecifier declSpec) {
 		if (notLocalFile(declSpec)) return ASTVisitor.PROCESS_SKIP;
 		logger.trace("enter IASTDeclSpecifier  " + declSpec.getClass().getSimpleName());
-		if (declSpec instanceof IASTCompositeTypeSpecifier) {
-			IASTCompositeTypeSpecifier type = (IASTCompositeTypeSpecifier)declSpec;
+		if (declSpec instanceof IASTCompositeTypeSpecifier type) {
 			String name = ASTStringUtilExt.getName(type);
 			List<GenericName> param = ASTStringUtilExt.getTemplateParameters(type);
 			TypeEntity typeEntity = context.foundNewType(name, type.getFileLocation().getStartingLineNumber());
@@ -137,7 +133,7 @@ public class CppVisitor  extends ASTVisitor {
 		else if (declSpec instanceof  IASTEnumerationSpecifier) {
 			context.foundNewType(ASTStringUtilExt.getName(declSpec), declSpec.getFileLocation().getStartingLineNumber());
 		}else {
-			//we do not care other types
+			//TODO we do not care other types
 		}
 		return super.visit(declSpec);
 	}
@@ -151,7 +147,7 @@ public class CppVisitor  extends ASTVisitor {
 		else if (declSpec instanceof  IASTEnumerationSpecifier) {
 			context.exitLastedEntity();
 		}else {
-			//we do not care other types
+			//TODO we do not care other types
 		}
 		return super.leave(declSpec);
 	}
@@ -162,7 +158,7 @@ public class CppVisitor  extends ASTVisitor {
 		if (notLocalFile(declarator)) return ASTVisitor.PROCESS_SKIP;
 		logger.trace("enter IASTDeclarator  " + declarator.getClass().getSimpleName());
 		if (declarator instanceof IASTFunctionDeclarator){
-			GenericName returnType = null;
+			GenericName returnType;
 			if ( declarator.getParent() instanceof IASTSimpleDeclaration) {
 				IASTSimpleDeclaration decl = (IASTSimpleDeclaration)(declarator.getParent());
 				returnType = buildGenericNameFromDeclSpecifier(decl.getDeclSpecifier());
@@ -270,13 +266,13 @@ public class CppVisitor  extends ASTVisitor {
 				}
 			}
 		}else if (declaration instanceof IASTFunctionDefinition){
-			//handled in declarator
+			//TODO handled in declarator
 		}else  if (declaration instanceof CPPASTVisibilityLabel){
-			//we ignore the visibility in dependency check
+			//TODO we ignore the visibility in dependency check
 		}else if (declaration instanceof CPPASTLinkageSpecification){
-			
+			//TODO
 		}else if (declaration instanceof CPPASTTemplateDeclaration){
-			
+			//TODO
 		}else if (declaration instanceof CPPASTProblemDeclaration){
 			System.err.println("parsing error \n" + declaration.getRawSignature());
 		}else if (declaration instanceof ICPPASTAliasDeclaration){
@@ -331,7 +327,7 @@ public class CppVisitor  extends ASTVisitor {
 			VarEntity var = new VarEntity(GenericName.build(parameterName),GenericName.build(parameterType),context.currentFunction(),idGenerator.generateId());
 			context.currentFunction().addParameter(var );
 		}else {
-			//System.out.println("** parameterDeclaration = " + parameter);
+			//TODO System.out.println("** parameterDeclaration = " + parameter);
 		}
 		return super.visit(parameterDeclaration);
 	}
