@@ -68,13 +68,17 @@ class ExpressionUsage(
         }
         /* create expression and link it with parent*/
         val parent = findExpressionInStack(ctx)
-        val expression = if (ctx.parent?.childCount == 1 && parent != null) {
+        val expression = if (ctx.parent?.childCount == 1 && parent != null
+                && parent.location.startIndex == ctx.start.startIndex
+                && parent.location.stopIndex == ctx.stop.stopIndex) {
             parent
         } else {
             val newExpression = Expression(idGenerator.generateId())
             context.lastContainer().addExpression(ctx, newExpression)
             newExpression.parent = parent
             newExpression.setText(ctx.text)
+            newExpression.setStart(ctx.start.startIndex)
+            newExpression.setEnd(ctx.stop.stopIndex)
             newExpression
         }
         tryDeduceExpression(expression, ctx)
@@ -135,6 +139,16 @@ class ExpressionUsage(
             is GenericCallLikeComparisonContext -> {
                 if (ctx.callSuffix().size >= 1)
                     expression.isCall = true
+            }
+
+            is PostfixUnaryExpressionContext -> {
+                val suffixes = ctx.postfixUnarySuffix()
+                if (suffixes.size >= 1) {
+                    val last = suffixes.last()
+                    if (last.callSuffix() != null) {
+                        expression.isCall = true
+                    }
+                }
             }
         }
     }
