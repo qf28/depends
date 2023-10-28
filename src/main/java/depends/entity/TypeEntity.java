@@ -48,7 +48,7 @@ public class TypeEntity extends ContainerEntity {
 	@Override
 	public void inferLocalLevelEntities(IBindingResolver bindingResolver) {
 		inheritedTypes = new ArrayList<>();
-		Collection<Entity> r = identiferToEntities(bindingResolver, this.inhertedTypeIdentifiers);
+		Collection<Entity> r = identifierToEntities(bindingResolver, this.inhertedTypeIdentifiers);
 		if (r!=null) {
 			r.forEach(item -> {
 				Entity typeItem = getTypeEntity(item);
@@ -62,7 +62,7 @@ public class TypeEntity extends ContainerEntity {
 		inheritedTypes.remove(this);
 
 		implementedTypes = new ArrayList<>();
-		r = identiferToEntities(bindingResolver, this.implementedIdentifiers);
+		r = identifierToEntities(bindingResolver, this.implementedIdentifiers);
 		if (r!=null) {
 				r.forEach(item -> {
 					Entity typeItem = getTypeEntity(item);

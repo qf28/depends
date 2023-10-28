@@ -16,7 +16,7 @@ val KotlinParser.TypeContext.usedClassNames: List<String>
                 } else if (nullableType() != null) {
                     nullableType().usedClassNames
                 } else if (typeReference() != null) {
-                    typeReference().usedClassNames
+                    listOf(typeReference().usedClassName)
                 } else emptyList()
         )
         return result
@@ -30,22 +30,23 @@ val KotlinParser.ParenthesizedTypeContext.usedClassNames: List<String>
 val KotlinParser.NullableTypeContext.usedClassNames: List<String>
     get() {
         return if (typeReference() != null) {
-            typeReference().usedClassNames
+            listOf(typeReference().usedClassName)
         } else parenthesizedType().usedClassNames
     }
 
-val KotlinParser.TypeReferenceContext.usedClassNames: List<String>
+val KotlinParser.TypeReferenceContext.usedClassName: String
     get() {
-        return userType().usedClassNames
+        return userType().usedClassName
     }
 
-val KotlinParser.UserTypeContext.usedClassNames: List<String>
+val KotlinParser.UserTypeContext.usedClassName: String
     get() {
-        val result = ArrayList<String>()
-        simpleUserType().forEach {
-            result.addAll(it.usedClassNames)
+        var r = StringBuilder()
+        for (i in simpleUserType().indices) {
+            val dot = if (r.isEmpty()) "" else "."
+            r = r.append(dot).append(simpleUserType(i).text)
         }
-        return result
+        return r.toString()
     }
 
 val KotlinParser.SimpleUserTypeContext.usedClassNames: List<String>
@@ -80,7 +81,7 @@ val KotlinParser.ReceiverTypeContext.usedClassNames: List<String>
         } else if (nullableType() != null) {
             nullableType().usedClassNames
         } else if (typeReference() != null) {
-            typeReference().usedClassNames
+            listOf(typeReference().usedClassName)
         } else emptyList()
     }
 

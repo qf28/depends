@@ -61,6 +61,7 @@ public class KotlinProcessor extends AbstractLangProcessor {
 		depedencyTypes.add(SET);
 		depedencyTypes.add(CREATE);
 		depedencyTypes.add(USE);
+		depedencyTypes.add(DELEGATE);
 		depedencyTypes.add(CAST);
 		depedencyTypes.add(THROW);
 		depedencyTypes.add(ANNOTATION);

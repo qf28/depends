@@ -36,6 +36,7 @@ public class DependencyType {
 	public static final String RETURN = "Return";
 	public static final String SET = "Set";
 	public static final String USE = "Use";
+	public static final String DELEGATE = "Delegate";
 	public static final String RECEIVE = "Receive";
 	public static final String CREATE = "Create";
 	public static final String CAST = "Cast";
@@ -61,6 +62,7 @@ public class DependencyType {
 		depedencyTypes.add(SET);
 		depedencyTypes.add(CREATE);
 		depedencyTypes.add(USE);
+		depedencyTypes.add(DELEGATE);
 		depedencyTypes.add(RECEIVE);
 		depedencyTypes.add(CAST);
 		depedencyTypes.add(THROW);
