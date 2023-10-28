@@ -35,131 +35,166 @@ import java.util.List;
 
 @Command(name = "depends")
 public class DependsCommand {
-	public static class SupportedLangs extends ArrayList<String> {
-		private static final long serialVersionUID = 1L;
-		public SupportedLangs() { super( LangProcessorRegistration.getRegistry().getLangs()); }
-	}
-	
-	public static class SupportedTypes extends ArrayList<String> {
-		private static final long serialVersionUID = 1L;
-		public SupportedTypes() { super( DependencyType.allDependencies()); }
-	}
-	
-	@Parameters(index = "0", completionCandidates = DependsCommand.SupportedLangs.class, description = "The lanauge of project files: [${COMPLETION-CANDIDATES}]")
-    private String lang;
-	@Parameters(index = "1", description = "The directory to be analyzed")
-    private String src;
-	@Parameters(index = "2",  description = "The output file name")
-	private String output;
-	@Option(names = {"-f", "--format"}, description = "the output format: [json(default),xml,excel,detail,dot,plantuml]")
-    private String[] format=new String[]{"json"};
-	@Option(names = {"-d", "--dir"},  description = "The output directory")
-	private String dir;
-	@Option(names = {"-m", "--map"},  description = "Output DV8 dependency map file.")
-    private boolean dv8map = true;
-	@Option(names = {"-s", "--strip-leading-path"},  description = "Strip the leading path.")
-    private boolean stripLeadingPath = false;
-	@Option(names = {"--strip-paths"}, description = "The path(s) to be stripped. if -s enabled, the path(s) start after <src>. "
-			+ "Otherwise, the path(s) should be valid.")
-	private String[] strippedPaths = new String[]{};
-	@Option(names = {"-g", "--granularity"}, split=",",  description = "Granularity of dependency.[file(default),class(kotlin only),method,structure]")
-    private String[] granularity=new String[]{"file"};
-	@Option(names = {"-p", "--namepattern"},  description = "The name path pattern.[dot(.), unix(/) or windows(\\)")
-    private String namePathPattern="";
-	@Option(names = {"-i", "--includes"}, description = "The files of searching path")
-    private String[] includes = new String[] {};
-	@Option(names = {"--auto-include"}, description = "auto include all paths under the source path (please notice the potential side effect)")
-	private boolean autoInclude = false;
-	@Option(names = {"--detail"}, description = "add detail dependency information to output (only applicable for JSON output format)")
-	private boolean detail = false;
-	@Option(names = {"--auto-stub"}, description = "create stub files for unsolved symbols (exprimental feature, only for java)")
-	private boolean autoStub = false;	
-	@Option(names = {"--type-filter"},split=",",  completionCandidates = DependsCommand.SupportedTypes.class, description = "only filter the listed dependency types[${COMPLETION-CANDIDATES}]")
-    private String[] typeFilter=new String[]{};
-	@Option(names = {"--external-deps"}, description = "Output external dependencies")
-	private boolean outputExternalDependencies = false;	
-	@Option(names = {"--duck-typing-deduce"}, description = "Deduce implicit variable types")
-	private boolean duckTypingDeduce = true;
-	@Option(names = {"--output-self-deps"}, description = "Output self dependencies")
-	private boolean outputSelfDependencies = false;
-	@Option(names = {"-h","--help"}, usageHelp = true, description = "display this help and exit")
+    @Option(names = {"-f", "--format"}, description = "the output format: [json(default),xml,excel,detail,dot,plantuml]")
+    private final String[] format = new String[]{"json"};
+    @Option(names = {"-m", "--map"}, description = "Output DV8 dependency map file.")
+    private final boolean dv8map = true;
+    @Option(names = {"-s", "--strip-leading-path"}, description = "Strip the leading path.")
+    private final boolean stripLeadingPath = false;
+    @Option(names = {"-g", "--granularity"}, split = ",", description = "Granularity of dependency.[file(default),class(kotlin only),method,structure]")
+    private final String[] granularity = new String[]{"file"};
+    @Option(names = {"-p", "--namepattern"}, description = "The name path pattern.[dot(.), unix(/) or windows(\\)")
+    private final String namePathPattern = "";
+    @Option(names = {"-i", "--includes"}, description = "The files of searching path")
+    private final String[] includes = new String[]{};
+    @Option(names = {"--auto-include"}, description = "auto include all paths under the source path (please notice the potential side effect)")
+    private final boolean autoInclude = false;
+    @Option(names = {"--detail"}, description = "add detail dependency information to output (only applicable for JSON output format)")
+    private final boolean detail = false;
+    @Option(names = {"--auto-stub"}, description = "create stub files for unsolved symbols (exprimental feature, only for java)")
+    private final boolean autoStub = false;
+    @Option(names = {"--type-filter"}, split = ",", completionCandidates = DependsCommand.SupportedTypes.class, description = "only filter the listed dependency types[${COMPLETION-CANDIDATES}]")
+    private final String[] typeFilter = new String[]{};
+    @Option(names = {"--external-deps"}, description = "Output external dependencies")
+    private final boolean outputExternalDependencies = false;
+    @Option(names = {"--duck-typing-deduce"}, description = "Deduce implicit variable types")
+    private final boolean duckTypingDeduce = true;
+    @Option(names = {"--output-self-deps"}, description = "Output self dependencies")
+    private final boolean outputSelfDependencies = false;
+    @Option(names = {"-h", "--help"}, usageHelp = true, description = "display this help and exit")
     boolean help;
-	public DependsCommand() {
-	}
-	public String getLang() {
-		return lang;
-	}
-	public void setLang(String lang) {
-		this.lang = lang;
-	}
-	public String getSrc() {
-		return src;
-	}
-	public void setSrc(String src) {
-		this.src = src;
-	}
-	public String getOutputName() {
-		return output;
-	}
-	public void setOutput(String output) {
-		this.output = output;
-	}
-	public String[] getFormat() {
-		return format;
-	}
-	public String getOutputDir() {
-		if (dir==null) {
-			dir = System.getProperty("user.dir");
-		}
-		return dir;
-	}
-	public boolean isDv8map() {
-		return dv8map;
-	}
-	public String[] getIncludes() {
-		return includes;
-	}
-	public boolean isHelp() {
-		return help;
-	}
+    @Option(names = {"--smell"}, description = "Analyze code smell (only for kotlin yet)")
+    private boolean smellAnalyse;
+    @Parameters(index = "0", completionCandidates = DependsCommand.SupportedLangs.class, description = "The lanauge of project files: [${COMPLETION-CANDIDATES}]")
+    private String lang;
+    @Parameters(index = "1", description = "The directory to be analyzed")
+    private String src;
+    @Parameters(index = "2", description = "The output file name")
+    private String output;
+    @Option(names = {"-d", "--dir"}, description = "The output directory")
+    private String dir;
+    @Option(names = {"--strip-paths"}, description = "The path(s) to be stripped. if -s enabled, the path(s) start after <src>. "
+            + "Otherwise, the path(s) should be valid.")
+    private String[] strippedPaths = new String[]{};
+
+    public DependsCommand() {
+    }
+
+    public String getLang() {
+        return lang;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
+
+    public String getSrc() {
+        return src;
+    }
+
+    public void setSrc(String src) {
+        this.src = src;
+    }
+
+    public String getOutputName() {
+        return output;
+    }
+
+    public void setOutput(String output) {
+        this.output = output;
+    }
+
+    public String[] getFormat() {
+        return format;
+    }
+
+    public String getOutputDir() {
+        if (dir == null) {
+            dir = System.getProperty("user.dir");
+        }
+        return dir;
+    }
+
+    public boolean isDv8map() {
+        return dv8map;
+    }
+
+    public boolean isEnableSmellAnalyze() {
+        return smellAnalyse;
+    }
+
+    public String[] getIncludes() {
+        return includes;
+    }
+
+    public boolean isHelp() {
+        return help;
+    }
+
     public String[] getGranularity() {
-		return granularity;
-	}
-	public String getNamePathPattern() {
-		return namePathPattern;
-	}
-	public boolean isStripLeadingPath() {
-		return stripLeadingPath;
-	}
-	
-	public boolean isAutoInclude () {
-		return autoInclude;
-	}
-	public boolean isDetail () {
-		return detail;
-	}
-	public String[] getStrippedPaths() {
-		return strippedPaths;
-	}
-	public void setStrippedPaths(String[] strippedPaths) {
-		this.strippedPaths = strippedPaths;
-	}
-	public boolean isAutoStub() {
-		return autoStub;
-	}
-	public List<String> getTypeFilter() {
-		if (typeFilter.length==0) {
-			return DependencyType.allDependencies();
-		}
-		return java.util.Arrays.asList(typeFilter);
-	}
-	public boolean isOutputExternalDependencies() {
-		return outputExternalDependencies;
-	}
-	public boolean isOutputSelfDependencies() {
-		return outputSelfDependencies;
-	}
-	public boolean isDuckTypingDeduce() {
-		return this.duckTypingDeduce;
-	}
+        return granularity;
+    }
+
+    public String getNamePathPattern() {
+        return namePathPattern;
+    }
+
+    public boolean isStripLeadingPath() {
+        return stripLeadingPath;
+    }
+
+    public boolean isAutoInclude() {
+        return autoInclude;
+    }
+
+    public boolean isDetail() {
+        return detail;
+    }
+
+    public String[] getStrippedPaths() {
+        return strippedPaths;
+    }
+
+    public void setStrippedPaths(String[] strippedPaths) {
+        this.strippedPaths = strippedPaths;
+    }
+
+    public boolean isAutoStub() {
+        return autoStub;
+    }
+
+    public List<String> getTypeFilter() {
+        if (typeFilter.length == 0) {
+            return DependencyType.allDependencies();
+        }
+        return java.util.Arrays.asList(typeFilter);
+    }
+
+    public boolean isOutputExternalDependencies() {
+        return outputExternalDependencies;
+    }
+
+    public boolean isOutputSelfDependencies() {
+        return outputSelfDependencies;
+    }
+
+    public boolean isDuckTypingDeduce() {
+        return this.duckTypingDeduce;
+    }
+
+    public static class SupportedLangs extends ArrayList<String> {
+        private static final long serialVersionUID = 1L;
+
+        public SupportedLangs() {
+            super(LangProcessorRegistration.getRegistry().getLangs());
+        }
+    }
+
+    public static class SupportedTypes extends ArrayList<String> {
+        private static final long serialVersionUID = 1L;
+
+        public SupportedTypes() {
+            super(DependencyType.allDependencies());
+        }
+    }
 }

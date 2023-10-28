@@ -36,6 +36,8 @@ import depends.matrix.core.DependencyMatrix;
 import depends.relations.BindingResolver;
 import depends.relations.IBindingResolver;
 import depends.relations.RelationCounter;
+import depends.smell.AbstractSmellAnalyzer;
+import depends.smell.SmellAnalyzerRegister;
 import multilang.depends.util.file.FileUtil;
 import multilang.depends.util.file.FolderCollector;
 import multilang.depends.util.file.TemporaryFile;
@@ -135,6 +137,12 @@ public class Main {
 					new LeadingNameStripper(args.isStripLeadingPath(), inputDir, args.getStrippedPaths()));
 			unsolvedSymbolDumper.output();
 		}
+
+		AbstractSmellAnalyzer smellAnalyzer = SmellAnalyzerRegister.Companion.getINSTANCE().getAnalyzerByLang(lang);
+		if(smellAnalyzer != null){
+			//TODO
+		}
+
 		long endTime = System.currentTimeMillis();
 		TemporaryFile.getInstance().delete();
 		CacheManager.create().shutdown();
