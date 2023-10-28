@@ -91,7 +91,6 @@ public class Main {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private static void executeCommand(DependsCommand args) throws ParameterException {
 		String lang = args.getLang();
 		String inputDir = args.getSrc();
