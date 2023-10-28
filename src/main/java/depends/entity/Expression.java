@@ -439,8 +439,8 @@ public class Expression implements Serializable {
 		this.location.setStartIndex(start);
 	}
 
-	public void setEnd(int end) {
-		this.location.setStopIndex(end);
+	public void setStop(int stop) {
+		this.location.setStopIndex(stop);
 	}
 
 	public Location getLocation() {

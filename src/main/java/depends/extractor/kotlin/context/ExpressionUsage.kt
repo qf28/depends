@@ -81,7 +81,7 @@ class ExpressionUsage(
             newExpression.parent = parent
             newExpression.setText(ctx.text)
             newExpression.setStart(ctx.start.startIndex)
-            newExpression.setEnd(ctx.stop.stopIndex)
+            newExpression.setStop(ctx.stop.stopIndex)
             newExpression
         }
         tryDeduceExpression(expression, ctx)
@@ -151,10 +151,18 @@ class ExpressionUsage(
                     var lastExpr: Expression? = null
                     val suffixStringBuilder = StringBuilder(primaryExpression.text)
                     for ((index, suffix) in suffixes.withIndex()) {
-                        val nowExpr = Expression(idGenerator.generateId())
-                        context.lastContainer().addExpression(suffix, nowExpr)
-                        suffixStringBuilder.append(suffix.text)
-                        nowExpr.setText(suffixStringBuilder.toString())
+                        val nowExpr = if(index != suffixes.size -1) {
+                            val newExpr = Expression(idGenerator.generateId())
+                            context.lastContainer().addExpression(suffix, newExpr)
+                            suffixStringBuilder.append(suffix.text)
+                            newExpr.setLine(primaryExpression.start.line)
+                            newExpr.setStart(primaryExpression.start.startIndex)
+                            newExpr.setStop(suffix.stop.stopIndex)
+                            newExpr.setText(suffixStringBuilder.toString())
+                            newExpr
+                        } else {
+                            expression
+                        }
                         if (suffix.callSuffix() != null) {
                             nowExpr.isCall = true
                             // 首个调用且primaryExpression为标识符，可以推导为方法调用
@@ -176,7 +184,6 @@ class ExpressionUsage(
                         }
                         lastExpr = nowExpr
                     }
-                    lastExpr?.parent = expression
                 }
             }
 

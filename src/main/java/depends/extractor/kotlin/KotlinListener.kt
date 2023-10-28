@@ -2,6 +2,7 @@ package depends.extractor.kotlin
 
 import depends.entity.FunctionEntity
 import depends.entity.GenericName
+import depends.entity.VarEntity
 import depends.entity.repo.EntityRepo
 import depends.extractor.kotlin.KotlinParser.ClassParametersContext
 import depends.extractor.kotlin.KotlinParser.FunctionValueParametersContext
@@ -19,7 +20,7 @@ import org.slf4j.LoggerFactory
 
 class KotlinListener(
         fileFullPath: String,
-        entityRepo: EntityRepo,
+        private val entityRepo: EntityRepo,
         bindingResolver: IBindingResolver
 ) : KotlinParserBaseListener() {
     companion object {
@@ -110,6 +111,7 @@ class KotlinListener(
         if (ctx.primaryConstructor() != null) {
             val method = context.foundMethodDeclarator(className, ctx.start.line)
             handleClassParameters(method, ctx.primaryConstructor().classParameters())
+            method.addReturnType(context.currentType())
             // 退出主构造函数声明
             exitLastEntity()
         } else {
@@ -117,7 +119,8 @@ class KotlinListener(
             // 如果二者都不存在，则需要生成默认无参数构造函数
             // 次构造函数在enterSecondaryConstructor中构造
             if (!ctx.hasSecondaryConstructor()) {
-                context.foundMethodDeclarator(className, className, emptyList(), ctx.start.line)
+                val method = context.foundMethodDeclarator(className, className, emptyList(), ctx.start.line)
+                method.addReturnType(context.currentType())
                 // 退出主构造函数声明
                 exitLastEntity()
             }
@@ -134,6 +137,7 @@ class KotlinListener(
         val className = context.currentType().rawName.name
         val method = context.foundMethodDeclarator(className, ctx.start.line)
         handleFunctionParameter(method, ctx.functionValueParameters())
+        method.addReturnType(context.currentType())
         super.enterSecondaryConstructor(ctx)
     }
 
@@ -238,11 +242,26 @@ class KotlinListener(
     }
 
     private fun handleClassParameters(method: FunctionEntity, ctx: ClassParametersContext) {
-        // TODO 处理主构造器的参数
+        for (classParameter in ctx.classParameter()) {
+            val varEntity = VarEntity(
+                    GenericName.build(classParameter.simpleIdentifier().text),
+                    GenericName.build(classParameter.type().typeClassName),
+                    method, entityRepo.generateId()
+            )
+            method.addParameter(varEntity)
+        }
     }
 
     private fun handleFunctionParameter(method: FunctionEntity, ctx: FunctionValueParametersContext) {
-        // TODO 处理次构造器的参数
+        for (functionValueParameter in ctx.functionValueParameter()) {
+            val param = functionValueParameter.parameter()
+            val varEntity = VarEntity(
+                    GenericName.build(param.simpleIdentifier().text),
+                    GenericName.build(param.type().typeClassName),
+                    method, entityRepo.generateId()
+            )
+            method.addParameter(varEntity)
+        }
     }
 
 }
