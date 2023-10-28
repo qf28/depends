@@ -2,17 +2,20 @@ package depends.extractor.kotlin.context
 
 import depends.entity.Expression
 import depends.entity.GenericName
+import depends.entity.TypeEntity
 import depends.entity.repo.EntityRepo
 import depends.entity.repo.IdGenerator
 import depends.extractor.kotlin.KotlinHandlerContext
 import depends.extractor.kotlin.KotlinParser.*
 import depends.extractor.kotlin.utils.typeClassName
+import depends.relations.IBindingResolver
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.RuleContext
 
 class ExpressionUsage(
         private val context: KotlinHandlerContext,
-        private val entityRepo: EntityRepo
+        private val entityRepo: EntityRepo,
+        private val bindingResolver: IBindingResolver
 ) {
     val idGenerator: IdGenerator = entityRepo
 
@@ -142,13 +145,47 @@ class ExpressionUsage(
             }
 
             is PostfixUnaryExpressionContext -> {
+                val primaryExpression = ctx.primaryExpression()
                 val suffixes = ctx.postfixUnarySuffix()
                 if (suffixes.size >= 1) {
-                    val last = suffixes.last()
-                    if (last.callSuffix() != null) {
-                        expression.isCall = true
+                    var lastExpr: Expression? = null
+                    val suffixStringBuilder = StringBuilder(primaryExpression.text)
+                    for ((index, suffix) in suffixes.withIndex()) {
+                        val nowExpr = Expression(idGenerator.generateId())
+                        context.lastContainer().addExpression(suffix, nowExpr)
+                        suffixStringBuilder.append(suffix.text)
+                        nowExpr.setText(suffixStringBuilder.toString())
+                        if (suffix.callSuffix() != null) {
+                            nowExpr.isCall = true
+                            // 首个调用且primaryExpression为标识符，可以推导为方法调用
+                            // 其余情况需要额外推导
+                            if (index == 0 && primaryExpression.simpleIdentifier() != null) {
+                                val name = primaryExpression.simpleIdentifier().text
+                                val typeEntity = context.foundEntityWithName(GenericName.build(name))
+                                if (typeEntity is TypeEntity && typeEntity.id > 0) {
+                                    nowExpr.isCreate = true
+                                    nowExpr.setType(typeEntity.type, typeEntity, bindingResolver)
+                                    nowExpr.rawType = typeEntity.rawName
+                                } else {
+                                    nowExpr.setIdentifier(name)
+                                }
+                            }
+                        }
+                        if (lastExpr != null) {
+                            lastExpr.parent = nowExpr
+                        }
+                        lastExpr = nowExpr
                     }
+                    lastExpr?.parent = expression
                 }
+            }
+
+            is ThisExpressionContext -> {
+                expression.setIdentifier("this")
+            }
+
+            is SuperExpressionContext -> {
+                expression.setIdentifier("super")
             }
         }
     }

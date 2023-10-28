@@ -35,7 +35,7 @@ class KotlinListener(
     init {
         context = KotlinHandlerContext(entityRepo, bindingResolver)
         context.startFile(fileFullPath)
-        expressionUsage = ExpressionUsage(context, entityRepo)
+        expressionUsage = ExpressionUsage(context, entityRepo, bindingResolver)
     }
 
     private fun exitLastEntity() {
