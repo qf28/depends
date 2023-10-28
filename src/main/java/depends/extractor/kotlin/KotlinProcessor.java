@@ -45,7 +45,7 @@ public class KotlinProcessor extends AbstractLangProcessor {
 
 	@Override
 	public boolean isEagerExpressionResolve(){
-		return true;
+		return false;
 	}
 
 	@Override

@@ -32,14 +32,9 @@ class AsExpressionTest : KotlinParserTest() {
         }
         run {
             val relationsUserAs0 = entityRepo.getEntity("${myPackageName}0.UserAs0").relations
-            assertEquals(2, relationsUserAs0.size)
-            assertEquals(
-                    setOf(DependencyType.USE, DependencyType.CAST),
-                    relationsUserAs0.map { it.type }.toSet()
-            )
-            for (relation in relationsUserAs0) {
-                assertEquals("ProviderAs0", relation.entity.rawName.name)
-            }
+            assertEquals(1, relationsUserAs0.size)
+            assertEquals(DependencyType.CAST, relationsUserAs0[0].type)
+            assertEquals("ProviderAs0", relationsUserAs0[0].entity.rawName.name)
         }
     }
 }

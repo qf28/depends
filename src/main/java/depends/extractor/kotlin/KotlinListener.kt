@@ -1,12 +1,16 @@
 package depends.extractor.kotlin
 
+import depends.entity.FunctionEntity
 import depends.entity.GenericName
 import depends.entity.repo.EntityRepo
+import depends.extractor.kotlin.KotlinParser.ClassParametersContext
+import depends.extractor.kotlin.KotlinParser.FunctionValueParametersContext
 import depends.extractor.kotlin.KotlinParser.ImportHeaderContext
 import depends.extractor.kotlin.KotlinParser.PackageHeaderContext
 import depends.extractor.kotlin.context.ExpressionUsage
-import depends.extractor.kotlin.utils.usedClassName
-import depends.extractor.kotlin.utils.usedClassNames
+import depends.extractor.kotlin.utils.hasSecondaryConstructor
+import depends.extractor.kotlin.utils.typeClassName
+import depends.extractor.kotlin.utils.usedTypeArguments
 import depends.importtypes.ExactMatchImport
 import depends.relations.IBindingResolver
 import org.antlr.v4.runtime.ParserRuleContext
@@ -26,6 +30,8 @@ class KotlinListener(
     private val context: KotlinHandlerContext
     private val expressionUsage: ExpressionUsage
 
+    private var expressionDepth = 0
+
     init {
         context = KotlinHandlerContext(entityRepo, bindingResolver)
         context.startFile(fileFullPath)
@@ -37,17 +43,18 @@ class KotlinListener(
     }
 
     override fun enterEveryRule(ctx: ParserRuleContext) {
-        expressionUsage.foundExpression(ctx)
+        if (expressionDepth > 0)
+            expressionUsage.foundExpression(ctx)
         super.enterEveryRule(ctx)
     }
 
-    override fun enterExpression(ctx: KotlinParser.ExpressionContext?) {
-        expressionUsage.exprStart = true
+    override fun enterExpression(ctx: KotlinParser.ExpressionContext) {
+        expressionDepth++
         super.enterExpression(ctx)
     }
 
     override fun exitExpression(ctx: KotlinParser.ExpressionContext?) {
-        expressionUsage.exprStart = false
+        expressionDepth--
         super.enterExpression(ctx)
     }
 
@@ -71,7 +78,7 @@ class KotlinListener(
         if (ctx.typeParameters() != null) {
             foundTypeParametersUse(ctx.typeParameters())
         }
-        val classNames = ctx.type().usedClassNames
+        val classNames = ctx.type().usedTypeArguments
         if (classNames.size == 1) {
             context.foundNewAlias(ctx.simpleIdentifier().text, classNames[0])
         }
@@ -92,12 +99,28 @@ class KotlinListener(
      * @param ctx
      */
     override fun enterClassDeclaration(ctx: KotlinParser.ClassDeclarationContext) {
-        context.foundNewType(GenericName.build(ctx.simpleIdentifier().text), ctx.start.line)
+        val className = ctx.simpleIdentifier().text
+        context.foundNewType(GenericName.build(className), ctx.start.line)
         if (ctx.typeParameters() != null) {
             foundTypeParametersUse(ctx.typeParameters())
         }
         if (ctx.delegationSpecifiers() != null) {
             foundDelegationSpecifiersUse(ctx.delegationSpecifiers())
+        }
+        if (ctx.primaryConstructor() != null) {
+            val method = context.foundMethodDeclarator(className, ctx.start.line)
+            handleClassParameters(method, ctx.primaryConstructor().classParameters())
+            // 退出主构造函数声明
+            exitLastEntity()
+        } else {
+            // kotlin中如果不存在主构造函数，需要判断是否存在次构造函数
+            // 如果二者都不存在，则需要生成默认无参数构造函数
+            // 次构造函数在enterSecondaryConstructor中构造
+            if (!ctx.hasSecondaryConstructor()) {
+                context.foundMethodDeclarator(className, className, emptyList(), ctx.start.line)
+                // 退出主构造函数声明
+                exitLastEntity()
+            }
         }
         super.enterClassDeclaration(ctx)
     }
@@ -105,6 +128,18 @@ class KotlinListener(
     override fun exitClassDeclaration(ctx: KotlinParser.ClassDeclarationContext?) {
         exitLastEntity()
         super.exitClassDeclaration(ctx)
+    }
+
+    override fun enterSecondaryConstructor(ctx: KotlinParser.SecondaryConstructorContext) {
+        val className = context.currentType().rawName.name
+        val method = context.foundMethodDeclarator(className, ctx.start.line)
+        handleFunctionParameter(method, ctx.functionValueParameters())
+        super.enterSecondaryConstructor(ctx)
+    }
+
+    override fun exitSecondaryConstructor(ctx: KotlinParser.SecondaryConstructorContext?) {
+        exitLastEntity()
+        super.exitSecondaryConstructor(ctx)
     }
 
     /**
@@ -146,8 +181,8 @@ class KotlinListener(
             val typeParam = typeParameters.typeParameter(i)
             val simpleId = typeParam.simpleIdentifier()
             if (simpleId != null) {
-                typeParam.type().usedClassNames.forEach {
-                    context.foundTypeParameters(GenericName.build(it))
+                if (typeParam.type() != null) {
+                    context.foundTypeParameters(GenericName.build(typeParam.type().typeClassName))
                 }
             }
             if (typeParam.simpleIdentifier() != null) {
@@ -185,20 +220,29 @@ class KotlinListener(
              */
             val constructorInvocation = delegationSpecifier.constructorInvocation()
             if (constructorInvocation != null) {
-                context.foundExtends(constructorInvocation.userType().usedClassName)
+                context.foundExtends(constructorInvocation.userType().typeClassName)
             }
             val userType = delegationSpecifier.userType()
             if (userType != null) {
-                context.foundImplements(userType.usedClassName)
+                context.foundImplements(userType.typeClassName)
             }
             val explicitDelegation = delegationSpecifier.explicitDelegation()
             if (explicitDelegation != null) {
                 if (explicitDelegation.userType() != null) {
-                    context.foundImplements(explicitDelegation.userType().usedClassName)
+                    context.foundImplements(explicitDelegation.userType().typeClassName)
                 }
                 val expression = explicitDelegation.expression()
                 // TODO 动态推导表达式的类型
             }
         }
     }
+
+    private fun handleClassParameters(method: FunctionEntity, ctx: ClassParametersContext) {
+        // TODO 处理主构造器的参数
+    }
+
+    private fun handleFunctionParameter(method: FunctionEntity, ctx: FunctionValueParametersContext) {
+        // TODO 处理次构造器的参数
+    }
+
 }
