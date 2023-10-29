@@ -1,5 +1,6 @@
 package depends.extractor.kotlin
 
+import depends.entity.Expression
 import depends.entity.FunctionEntity
 import depends.entity.GenericName
 import depends.entity.VarEntity
@@ -10,6 +11,7 @@ import depends.extractor.kotlin.KotlinParser.ImportHeaderContext
 import depends.extractor.kotlin.KotlinParser.PackageHeaderContext
 import depends.extractor.kotlin.context.ExpressionUsage
 import depends.extractor.kotlin.utils.hasSecondaryConstructor
+import depends.extractor.kotlin.utils.parserException
 import depends.extractor.kotlin.utils.typeClassName
 import depends.extractor.kotlin.utils.usedTypeArguments
 import depends.importtypes.ExactMatchImport
@@ -26,6 +28,9 @@ class KotlinListener(
     companion object {
         @JvmStatic
         private val logger = LoggerFactory.getLogger(KotlinListener::class.java)
+        private fun logReceiverTypeNotSupport() {
+            logger.warn("does not support extension function now")
+        }
     }
 
     private val context: KotlinHandlerContext
@@ -167,8 +172,38 @@ class KotlinListener(
     }
 
     override fun exitObjectDeclaration(ctx: KotlinParser.ObjectDeclarationContext?) {
-        context.exitLastedEntity()
+        exitLastEntity()
         super.exitObjectDeclaration(ctx)
+    }
+
+    override fun enterFunctionDeclaration(ctx: KotlinParser.FunctionDeclarationContext) {
+        if (ctx.receiverType() == null) {
+            val funcName = ctx.simpleIdentifier().text
+            val functionEntity = context.foundMethodDeclarator(funcName, ctx.start.line)
+            handleFunctionParameter(functionEntity, ctx.functionValueParameters())
+        } else {
+            logReceiverTypeNotSupport()
+        }
+        super.enterFunctionDeclaration(ctx)
+    }
+
+    override fun exitFunctionDeclaration(ctx: KotlinParser.FunctionDeclarationContext) {
+        if (ctx.receiverType() == null) {
+            exitLastEntity()
+        }
+        super.exitFunctionDeclaration(ctx)
+    }
+
+    override fun enterPropertyDeclaration(ctx: KotlinParser.PropertyDeclarationContext) {
+        val currentFunction = context.currentFunction()
+        if (currentFunction != null) {
+            if (ctx.receiverType() == null) {
+                handleLocalVariable(ctx)
+            } else {
+                logReceiverTypeNotSupport()
+            }
+        }
+        super.enterPropertyDeclaration(ctx)
     }
 
     /**
@@ -262,6 +297,46 @@ class KotlinListener(
             )
             method.addParameter(varEntity)
         }
+    }
+
+    private fun handleLocalVariable(ctx: KotlinParser.PropertyDeclarationContext) {
+        val variableDeclaration = ctx.variableDeclaration()
+        val multiVariableDeclaration = ctx.multiVariableDeclaration()
+        if (variableDeclaration != null) {
+            handleVariableDeclaration(variableDeclaration, ctx)
+        } else if (multiVariableDeclaration != null) {
+            multiVariableDeclaration.variableDeclaration().forEach {
+                handleVariableDeclaration(it, ctx)
+            }
+        } else {
+            throw parserException
+        }
+    }
+
+    private fun handleVariableDeclaration(variableDeclaration: KotlinParser.VariableDeclarationContext, ctx: KotlinParser.PropertyDeclarationContext) {
+        val newExpression = Expression(entityRepo.generateId())
+        context.lastContainer().addExpression(ctx, newExpression)
+        newExpression.setText(ctx.text)
+        newExpression.setStart(ctx.start.startIndex)
+        newExpression.setStop(ctx.stop.stopIndex)
+        newExpression.setIdentifier(variableDeclaration.simpleIdentifier().text)
+        newExpression.isSet = true
+        val type = variableDeclaration.type()
+        val varEntity = if (type != null) {
+            context.foundVarDefinition(
+                    variableDeclaration.simpleIdentifier().text,
+                    GenericName.build(type.typeClassName),
+                    type.usedTypeArguments.map(GenericName::build),
+                    ctx.start.line
+            )
+        } else {
+            context.foundVarDefinition(
+                    context.lastContainer(),
+                    variableDeclaration.simpleIdentifier().text,
+                    ctx.start.line
+            )
+        }
+        newExpression.addDeducedTypeVar(varEntity)
     }
 
 }

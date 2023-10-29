@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("TypeUtilsKt")
 
-private val parserException = IllegalStateException("error in parser")
+val parserException = IllegalStateException("error in parser")
 
 val KotlinParser.TypeContext.typeClassName: String
     get() {
@@ -30,7 +30,7 @@ val KotlinParser.TypeContext.typeClassName: String
             logger.error("does not support deduce union type now")
             "Object"
         } else {
-            throw IllegalStateException("error in parser")
+            throw parserException
         }
     }
 

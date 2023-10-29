@@ -145,44 +145,19 @@ class ExpressionUsage(
             }
 
             is PostfixUnaryExpressionContext -> {
-                val primaryExpression = ctx.primaryExpression()
-                val suffixes = ctx.postfixUnarySuffix()
-                if (suffixes.size >= 1) {
-                    var lastExpr: Expression? = null
-                    val suffixStringBuilder = StringBuilder(primaryExpression.text)
-                    for ((index, suffix) in suffixes.withIndex()) {
-                        val nowExpr = if(index != suffixes.size -1) {
-                            val newExpr = Expression(idGenerator.generateId())
-                            context.lastContainer().addExpression(suffix, newExpr)
-                            suffixStringBuilder.append(suffix.text)
-                            newExpr.setLine(primaryExpression.start.line)
-                            newExpr.setStart(primaryExpression.start.startIndex)
-                            newExpr.setStop(suffix.stop.stopIndex)
-                            newExpr.setText(suffixStringBuilder.toString())
-                            newExpr
-                        } else {
-                            expression
-                        }
-                        if (suffix.callSuffix() != null) {
-                            nowExpr.isCall = true
-                            // 首个调用且primaryExpression为标识符，可以推导为方法调用
-                            // 其余情况需要额外推导
-                            if (index == 0 && primaryExpression.simpleIdentifier() != null) {
-                                val name = primaryExpression.simpleIdentifier().text
-                                val typeEntity = context.foundEntityWithName(GenericName.build(name))
-                                if (typeEntity is TypeEntity && typeEntity.id > 0) {
-                                    nowExpr.isCreate = true
-                                    nowExpr.setType(typeEntity.type, typeEntity, bindingResolver)
-                                    nowExpr.rawType = typeEntity.rawName
-                                } else {
-                                    nowExpr.setIdentifier(name)
-                                }
-                            }
-                        }
-                        if (lastExpr != null) {
-                            lastExpr.parent = nowExpr
-                        }
-                        lastExpr = nowExpr
+                handlePostfixUnary(ctx, expression)
+            }
+
+            is PrimaryExpressionContext -> {
+                if (ctx.simpleIdentifier() != null) {
+                    val name = ctx.simpleIdentifier().text
+                    val typeEntity = context.foundEntityWithName(GenericName.build(name))
+                    if (typeEntity is TypeEntity && typeEntity.id > 0) {
+                        expression.isCreate = true
+                        expression.setType(typeEntity.type, typeEntity, bindingResolver)
+                        expression.rawType = typeEntity.rawName
+                    } else {
+                        expression.setIdentifier(name)
                     }
                 }
             }
@@ -194,6 +169,24 @@ class ExpressionUsage(
             is SuperExpressionContext -> {
                 expression.setIdentifier("super")
             }
+        }
+    }
+
+    private fun handlePostfixUnary(ctx: PostfixUnaryExpressionContext, expression: Expression) {
+        val suffix = ctx.postfixUnarySuffix()
+        if (suffix?.callSuffix() != null) {
+            expression.isCall = true
+        } else if (suffix?.navigationSuffix() != null) {
+            expression.isDot = true
+        }
+        val navigationSuffix = suffix?.navigationSuffix()
+        if (navigationSuffix?.simpleIdentifier() != null) {
+            if (expression.parent?.isCall == true) {
+                // 识别到父表达式是函数调用，则将自己设置为函数调用
+                // TODO 对函数对象的调用；调用运算符重载
+                expression.isCall = true
+            }
+            expression.setIdentifier(navigationSuffix.simpleIdentifier().text)
         }
     }
 }

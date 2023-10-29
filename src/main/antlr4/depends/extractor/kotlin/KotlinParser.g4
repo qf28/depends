@@ -433,8 +433,13 @@ unaryPrefix
     | prefixUnaryOperator NL*
     ;
 
-postfixUnaryExpression
+/*postfixUnaryExpression
     : primaryExpression postfixUnarySuffix*
+    ;*/
+// 将语法修改如下，方便遍历语法树
+postfixUnaryExpression
+    : postfixUnaryExpression postfixUnarySuffix
+    | primaryExpression
     ;
 
 postfixUnarySuffix

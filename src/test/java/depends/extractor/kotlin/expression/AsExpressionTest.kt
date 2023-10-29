@@ -6,7 +6,6 @@ import depends.extractor.kotlin.packageName
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class AsExpressionTest : KotlinParserTest() {
     override val myPackageName: String = "$packageName.expression.asExpression.as"
@@ -32,7 +31,7 @@ class AsExpressionTest : KotlinParserTest() {
             assertEquals("ProviderAs0", relationsChildAs0[0].entity.rawName.name)
         }
         run {
-            val relationsUserAs0 = entityRepo.getEntity("${myPackageName}0.UserAs0").relations
+            val relationsUserAs0 = entityRepo.getEntity("${myPackageName}0.UserAs0.func").relations
             assertEquals(3, relationsUserAs0.size)
             assertEquals(
                     setOf(DependencyType.CALL, DependencyType.CAST, DependencyType.CREATE),
