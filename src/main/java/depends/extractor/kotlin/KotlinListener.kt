@@ -6,6 +6,8 @@ import depends.entity.GenericName
 import depends.entity.VarEntity
 import depends.entity.repo.EntityRepo
 import depends.extractor.kotlin.KotlinParser.ClassParametersContext
+import depends.extractor.kotlin.KotlinParser.FunctionBodyContext
+import depends.extractor.kotlin.KotlinParser.FunctionDeclarationContext
 import depends.extractor.kotlin.KotlinParser.FunctionValueParametersContext
 import depends.extractor.kotlin.KotlinParser.ImportHeaderContext
 import depends.extractor.kotlin.KotlinParser.PackageHeaderContext
@@ -49,8 +51,15 @@ class KotlinListener(
     }
 
     override fun enterEveryRule(ctx: ParserRuleContext) {
-        if (expressionDepth > 0)
-            expressionUsage.foundExpression(ctx)
+        if (expressionDepth > 0) {
+            val expression = expressionUsage.foundExpression(ctx)
+            if (expression != null) {
+                if (ctx.parent is FunctionBodyContext
+                        && ctx.parent.parent is FunctionDeclarationContext) {
+                    expression.addDeducedTypeFunction(context.currentFunction())
+                }
+            }
+        }
         super.enterEveryRule(ctx)
     }
 
@@ -177,10 +186,14 @@ class KotlinListener(
     }
 
     override fun enterFunctionDeclaration(ctx: KotlinParser.FunctionDeclarationContext) {
+        val type = ctx.type()
         if (ctx.receiverType() == null) {
             val funcName = ctx.simpleIdentifier().text
             val functionEntity = context.foundMethodDeclarator(funcName, ctx.start.line)
             handleFunctionParameter(functionEntity, ctx.functionValueParameters())
+            if (type != null) {
+                functionEntity.addReturnType(GenericName.build(type.typeClassName))
+            }
         } else {
             logReceiverTypeNotSupport()
         }

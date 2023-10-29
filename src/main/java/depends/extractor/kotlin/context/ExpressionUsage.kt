@@ -182,9 +182,26 @@ class ExpressionUsage(
         val navigationSuffix = suffix?.navigationSuffix()
         if (navigationSuffix?.simpleIdentifier() != null) {
             if (expression.parent?.isCall == true) {
-                // 识别到父表达式是函数调用，则将自己设置为函数调用
+                /**
+                 * 由于函数的调用延迟发生，例如表达式a.foo()解析为
+                 *              a.foo()
+                 *              |     \
+                 *           a.foo   ()
+                 *           |         \
+                 *           a        .foo
+                 * 生成的表达式树如下
+                 *          a.foo()
+                 *             |
+                 *          a.foo
+                 *            |
+                 *            a
+                 * 类型推导至a.foo时，应当将a.foo视为函数调用，
+                 * 同时推导a.foo()的类型，并且a.foo()不能视为函数调用
+                 * 否则a.foo()的类型(此处假设为MyType型)会被视为对MyType的函数调用
+                 */
                 // TODO 对函数对象的调用；调用运算符重载
                 expression.isCall = true
+                expression.parent.isCall = false
             }
             expression.setIdentifier(navigationSuffix.simpleIdentifier().text)
         }

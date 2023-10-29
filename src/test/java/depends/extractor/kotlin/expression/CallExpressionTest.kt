@@ -15,7 +15,7 @@ class CallExpressionTest : KotlinParserTest() {
     fun setUp() = super.init()
 
     @Test
-    fun shouldCallSuccess0() {
+    fun shouldHandleCallSuccess0() {
         val src0 = "./src/test/resources/kotlin-code-examples/expression/call/call0/ProviderCall0.kt"
         val src1 = "./src/test/resources/kotlin-code-examples/expression/call/call0/TestCall0.kt"
         val parser = createParser()
@@ -48,6 +48,49 @@ class CallExpressionTest : KotlinParserTest() {
 
                     DependencyType.CREATE -> {
                         assertEquals("ProviderCall0", relation.entity.rawName.name)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun shouldHandleContinuousCallSuccess1() {
+        val src0 = "./src/test/resources/kotlin-code-examples/expression/call/call1/ProviderCall1.kt"
+        val src1 = "./src/test/resources/kotlin-code-examples/expression/call/call1/TestCall1.kt"
+        val src2 = "./src/test/resources/kotlin-code-examples/expression/call/call1/MiddleTypeCall1.kt"
+        val parser = createParser()
+        parser.parse(src0)
+        parser.parse(src1)
+        parser.parse(src2)
+        resolveAllBindings()
+        run {
+            val relations = entityRepo.getEntity("${myPackageName}1.TestCall1.test0").relations
+            assertEquals(
+                    setOf(DependencyType.CALL, DependencyType.USE,
+                            DependencyType.CONTAIN, DependencyType.CREATE),
+                    relations.map { it.type }.toSet()
+            )
+            for (relation in relations) {
+                when (relation.type) {
+                    DependencyType.CALL -> {
+                        assertTrue(relation.entity.rawName.name == "func0"
+                                || relation.entity.rawName.name == "funcInMiddleType"
+                                || relation.entity.rawName.name == "ProviderCall1")
+                    }
+
+                    DependencyType.USE -> {
+                        assertTrue(relation.entity.rawName.name == "providerCall1"
+                                || relation.entity.rawName.name == "ProviderCall1"
+                                || relation.entity.rawName.name == "MiddleTypeCall1")
+                    }
+
+                    DependencyType.CONTAIN -> {
+                        assertEquals("ProviderCall1", relation.entity.rawName.name)
+                    }
+
+                    DependencyType.CREATE -> {
+                        assertEquals("ProviderCall1", relation.entity.rawName.name)
                     }
                 }
             }
