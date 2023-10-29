@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>cn.emergentdesign.se</groupId>
 	<artifactId>depends</artifactId>
 	<!-- <version>1.0-SNAPSHOT</version> -->
-	<version>0.9.7</version>
+	<version>0.9.7-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<antlr4.visitor>true</antlr4.visitor>
@@ -15,7 +15,16 @@
 		<neo4j-ogm.version>3.1.9</neo4j-ogm.version>
 		<antlr.baseUri>${basedir}/src/main/antlr4/depends/extractor/</antlr.baseUri>
 		<kotlin.version>1.9.0</kotlin.version>
+		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
 	</properties>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>alex-snapshots</id>
+			<url>http://47.115.213.131:8080/repository/alex-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 
 	<build>
 		<plugins>
@@ -57,6 +66,9 @@
 						<manifest>
 							<mainClass>depends.Main</mainClass>
 						</manifest>
+						<manifestEntries>
+							<Build-Time>${maven.build.timestamp}</Build-Time>
+						</manifestEntries>
 					</archive>
 					<descriptors>
 						<descriptor>src/main/assemble/jar-with-dependencies.xml</descriptor>
