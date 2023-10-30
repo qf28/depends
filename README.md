@@ -94,6 +94,7 @@ The detail of json/xml format could be found [here](./doc/output_format.md).
 * Return: returned type
 * Throw: throw exceptions
 * Use: use or set variables
+* Delegate: kotlin class delegate
 * ImplLink: the implementation link between call and the implementation of prototype.
 
 For detail of supported types, please refer to [here](./doc/dependency_types.md)

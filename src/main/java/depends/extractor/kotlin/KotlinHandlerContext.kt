@@ -1,6 +1,7 @@
 package depends.extractor.kotlin
 
 import depends.entity.GenericName
+import depends.entity.KotlinExpression
 import depends.entity.KotlinTypeEntity
 import depends.entity.TypeEntity
 import depends.entity.repo.EntityRepo
@@ -21,10 +22,10 @@ class KotlinHandlerContext(entityRepo: EntityRepo, bindingResolver: IBindingReso
         return currentTypeEntity
     }
 
-    open fun foundNewDelegation(name: GenericName) {
+    open fun foundNewDelegation(delegationExpression: KotlinExpression) {
         val currentType = currentType()
         if (currentType is KotlinTypeEntity) {
-            currentType.delegateProvider = name
+            delegationExpression.deducedTypeDelegates.add(currentType)
         } else {
             logger.warn("currentType should be ${KotlinTypeEntity::class.simpleName}")
         }

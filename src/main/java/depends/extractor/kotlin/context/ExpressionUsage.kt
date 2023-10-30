@@ -2,6 +2,7 @@ package depends.extractor.kotlin.context
 
 import depends.entity.Expression
 import depends.entity.GenericName
+import depends.entity.KotlinExpression
 import depends.entity.TypeEntity
 import depends.entity.repo.EntityRepo
 import depends.entity.repo.IdGenerator
@@ -19,15 +20,22 @@ class ExpressionUsage(
 ) {
     val idGenerator: IdGenerator = entityRepo
 
-    private fun findExpressionInStack(ctx: RuleContext?): Expression? {
+    private fun findExpressionInStack(ctx: RuleContext?): KotlinExpression? {
         if (ctx == null) return null
         if (ctx.parent == null) return null
         if (context.lastContainer() == null) {
             return null
         }
-        return if (context.lastContainer().expressions().containsKey(ctx.parent))
-            context.lastContainer().expressions()[ctx.parent]
-        else findExpressionInStack(ctx.parent)
+        return if (context.lastContainer().expressions().containsKey(ctx.parent)) {
+            val result = context.lastContainer().expressions()[ctx.parent]
+            if (result is KotlinExpression) {
+                result
+            } else {
+                findExpressionInStack(ctx.parent)
+            }
+        } else {
+            findExpressionInStack(ctx.parent)
+        }
     }
 
     private fun isExpressionContext(ctx: ParserRuleContext): Boolean {
@@ -62,7 +70,7 @@ class ExpressionUsage(
                 || ctx is JumpExpressionContext
     }
 
-    fun foundExpression(ctx: ParserRuleContext): Expression? {
+    fun foundExpression(ctx: ParserRuleContext): KotlinExpression? {
         if (!isExpressionContext(ctx)) {
             return null
         }
@@ -76,7 +84,7 @@ class ExpressionUsage(
                 && parent.location.stopIndex == ctx.stop.stopIndex) {
             parent
         } else {
-            val newExpression = Expression(idGenerator.generateId())
+            val newExpression = KotlinExpression(idGenerator.generateId())
             context.lastContainer().addExpression(ctx, newExpression)
             newExpression.parent = parent
             newExpression.setText(ctx.text)

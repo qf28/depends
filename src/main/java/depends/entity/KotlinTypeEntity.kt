@@ -1,28 +1,12 @@
 package depends.entity
 
-import depends.relations.IBindingResolver
 import org.slf4j.LoggerFactory
-import java.util.Collections
+import java.io.Serializable
 
 class KotlinTypeEntity(simpleName: GenericName, parent: Entity?, id: Int)
-    : TypeEntity(simpleName, parent, id) {
-    var delegateProvider: GenericName? = null
+    : TypeEntity(simpleName, parent, id), Serializable {
     var delegateProviderType: TypeEntity? = null
-        private set
-
-    override fun inferLocalLevelEntities(bindingResolver: IBindingResolver?) {
-        if (delegateProvider != null) {
-            val r = identifierToEntities(bindingResolver, Collections.singleton(delegateProvider))
-            r.forEach {
-                if (it.type != null) {
-                    delegateProviderType = it.type
-                } else {
-                    logger.warn("${it.rawName} expected a type, but actually it is ${it.javaClass.simpleName}")
-                }
-            }
-        }
-        super.inferLocalLevelEntities(bindingResolver)
-    }
+        internal set
 
     companion object {
         @JvmStatic

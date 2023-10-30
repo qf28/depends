@@ -1,11 +1,10 @@
 package depends.extractor.kotlin
 
-import depends.entity.Expression
-import depends.entity.FunctionEntity
-import depends.entity.GenericName
-import depends.entity.VarEntity
+import depends.entity.*
 import depends.entity.repo.EntityRepo
 import depends.extractor.kotlin.KotlinParser.ClassParametersContext
+import depends.extractor.kotlin.KotlinParser.ExplicitDelegationContext
+import depends.extractor.kotlin.KotlinParser.ExpressionContext
 import depends.extractor.kotlin.KotlinParser.FunctionBodyContext
 import depends.extractor.kotlin.KotlinParser.FunctionDeclarationContext
 import depends.extractor.kotlin.KotlinParser.FunctionValueParametersContext
@@ -51,24 +50,27 @@ class KotlinListener(
     }
 
     override fun enterEveryRule(ctx: ParserRuleContext) {
-        if (expressionDepth > 0) {
+        if (ctx is ExpressionContext || expressionDepth > 0) {
             val expression = expressionUsage.foundExpression(ctx)
             if (expression != null) {
                 if (ctx.parent is FunctionBodyContext
                         && ctx.parent.parent is FunctionDeclarationContext) {
                     expression.addDeducedTypeFunction(context.currentFunction())
                 }
+                if (ctx.parent is ExplicitDelegationContext) {
+                    context.foundNewDelegation(expression)
+                }
             }
         }
         super.enterEveryRule(ctx)
     }
 
-    override fun enterExpression(ctx: KotlinParser.ExpressionContext) {
+    override fun enterExpression(ctx: ExpressionContext) {
         expressionDepth++
         super.enterExpression(ctx)
     }
 
-    override fun exitExpression(ctx: KotlinParser.ExpressionContext?) {
+    override fun exitExpression(ctx: ExpressionContext) {
         expressionDepth--
         super.enterExpression(ctx)
     }
@@ -185,7 +187,7 @@ class KotlinListener(
         super.exitObjectDeclaration(ctx)
     }
 
-    override fun enterFunctionDeclaration(ctx: KotlinParser.FunctionDeclarationContext) {
+    override fun enterFunctionDeclaration(ctx: FunctionDeclarationContext) {
         val type = ctx.type()
         if (ctx.receiverType() == null) {
             val funcName = ctx.simpleIdentifier().text
@@ -200,7 +202,7 @@ class KotlinListener(
         super.enterFunctionDeclaration(ctx)
     }
 
-    override fun exitFunctionDeclaration(ctx: KotlinParser.FunctionDeclarationContext) {
+    override fun exitFunctionDeclaration(ctx: FunctionDeclarationContext) {
         if (ctx.receiverType() == null) {
             exitLastEntity()
         }
@@ -283,8 +285,7 @@ class KotlinListener(
                 if (explicitDelegation.userType() != null) {
                     context.foundImplements(explicitDelegation.userType().typeClassName)
                 }
-                val expression = explicitDelegation.expression()
-                // TODO 动态推导表达式的类型
+                // 代理的目标对象的表达式在处理表达式时与本类型关联，此处不处理
             }
         }
     }
@@ -327,7 +328,7 @@ class KotlinListener(
     }
 
     private fun handleVariableDeclaration(variableDeclaration: KotlinParser.VariableDeclarationContext, ctx: KotlinParser.PropertyDeclarationContext) {
-        val newExpression = Expression(entityRepo.generateId())
+        val newExpression = KotlinExpression(entityRepo.generateId())
         context.lastContainer().addExpression(ctx, newExpression)
         newExpression.setText(ctx.text)
         newExpression.setStart(ctx.start.startIndex)

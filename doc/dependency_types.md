@@ -2,19 +2,20 @@
 
 *Depends* could extract the following dependency types:
 1. Import
-1. Contain
-1. Parameter
-1. Call
-1. Return
-1. Throw
-1. Implement
-1. Extend
-1. Create
-1. Use
-1. Cast
-1. ImplLink
-1. Annotation
-1. Mixin
+2. Contain
+3. Parameter
+4. Call
+5. Return
+6. Throw
+7. Implement
+8. Extend
+9. Create
+10. Use
+11. Delegate
+12. Cast
+13. ImplLink
+14. Annotation
+15. Mixin
 
 For most of relation types, the name is self-explained. 
 *ImplLink* relation need more information. 
@@ -320,7 +321,39 @@ C,C++, Java, Python, Ruby
   
 ### Brief Description
   *Use* is a relation of an expression and the types/variables used by the expression.
-   
+
+## Delegate
+### Supported Languages
+  Kotlin
+
+## Brief Description
+  *Delegate* is a universal design pattern that can only recognize Delegations
+  at the grammar level of kotlin, as detailed in the *by* keyword of the kotlin language
+
+### Examples
+
+#### Kotlin
+```kotlin
+interface InterfaceDelegate
+
+class DelegateProvider : InterfaceDelegate
+
+class DelegateUser: InterfaceDelegate by DelegateProvider()
+```
+
+We say that *class DelegateUser* delegates the *DelegateProvider*
+and is represented as *interface InterfaceDelegate*
+
+*"DelegateProvider()"* here is not limited to directly creating objects, but can also obtain objects from any expression
+
+```kotlin
+fun funcWhichReturnDelegateProvider() : DelegateProvider {
+    // ...
+    // Omit the function body here
+}
+class DelegateUser: InterfaceDelegate by funcWhichReturnDelegateProvider()
+```
+
 ## Annotation
 ### Supported Lanaguages
   Java/Python
