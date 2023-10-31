@@ -134,7 +134,8 @@ class KotlinListener(
             // kotlin中如果不存在主构造函数，需要判断是否存在次构造函数
             // 如果二者都不存在，则需要生成默认无参数构造函数
             // 次构造函数在enterSecondaryConstructor中构造
-            if (!ctx.hasSecondaryConstructor()) {
+            // 此外，接口不会生成默认的主构造函数
+            if (!ctx.hasSecondaryConstructor() && ctx.INTERFACE() == null) {
                 val method = context.foundMethodDeclarator(className, className, emptyList(), ctx.start.line)
                 method.addReturnType(context.currentType())
                 // 退出主构造函数声明
