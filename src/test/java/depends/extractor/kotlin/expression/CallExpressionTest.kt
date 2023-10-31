@@ -96,4 +96,45 @@ class CallExpressionTest : KotlinParserTest() {
             }
         }
     }
+
+    @Test
+    fun shouldHandleCallSuccess2() {
+        val src0 = "./src/test/resources/kotlin-code-examples/expression/call/call2/ProviderCall2.kt"
+        val src1 = "./src/test/resources/kotlin-code-examples/expression/call/call2/TestCall2.kt"
+        val src2 = "./src/test/resources/kotlin-code-examples/expression/call/call2/InterfaceCall2.kt"
+        val parser = createParser()
+        parser.parse(src0)
+        parser.parse(src1)
+        parser.parse(src2)
+        resolveAllBindings()
+        run {
+            val relations = entityRepo.getEntity("${myPackageName}2.TestCall2.test0").relations
+            assertEquals(
+                    setOf(DependencyType.CALL, DependencyType.USE,
+                            DependencyType.CONTAIN, DependencyType.CREATE),
+                    relations.map { it.type }.toSet()
+            )
+            for (relation in relations) {
+                when (relation.type) {
+                    DependencyType.CALL -> {
+                        assertTrue(relation.entity.rawName.name == "func0"
+                                || relation.entity.rawName.name == "ProviderCall2")
+                    }
+
+                    DependencyType.USE -> {
+                        assertTrue(relation.entity.rawName.name == "providerCall2"
+                                || relation.entity.rawName.name == "ProviderCall2")
+                    }
+
+                    DependencyType.CONTAIN -> {
+                        assertEquals("InterfaceCall2", relation.entity.rawName.name)
+                    }
+
+                    DependencyType.CREATE -> {
+                        assertEquals("ProviderCall2", relation.entity.rawName.name)
+                    }
+                }
+            }
+        }
+    }
 }

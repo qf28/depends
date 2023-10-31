@@ -47,7 +47,7 @@ val KotlinParser.TypeContext.usedTypeArguments: List<String>
         } else if (nullableType() != null) {
             result.addAll(nullableType().usedTypeArguments)
         } else if (typeReference() != null) {
-            result.addAll(listOf(typeReference().typeClassName))
+            // typeReference has no usedTypeArguments, pass
         } else if (definitelyNonNullableType() != null) {
             val parenthesizedUserTypes = definitelyNonNullableType().parenthesizedUserType()
             parenthesizedUserTypes.forEach {
@@ -71,7 +71,7 @@ val KotlinParser.ParenthesizedUserTypeContext.usedTypeArguments: List<String>
 val KotlinParser.UserTypeContext.usedTypeArguments: List<String>
     get() {
         val result = ArrayList<String>()
-        simpleUserType().forEach { 
+        simpleUserType().forEach {
             result.addAll(it.usedTypeArguments)
         }
         return result
