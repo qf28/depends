@@ -87,7 +87,7 @@ class ExpressionUsage(
             val newExpression = KotlinExpression(idGenerator.generateId())
             context.lastContainer().addExpression(ctx, newExpression)
             newExpression.parent = parent
-            newExpression.setText(ctx.text)
+            newExpression.text = ctx.text
             newExpression.setStart(ctx.start.startIndex)
             newExpression.setStop(ctx.stop.stopIndex)
             newExpression
@@ -189,7 +189,8 @@ class ExpressionUsage(
         }
         val navigationSuffix = suffix?.navigationSuffix()
         if (navigationSuffix?.simpleIdentifier() != null) {
-            if (expression.parent?.isCall == true) {
+            val parent = expression.parent
+            if (parent?.isCall == true && parent.text == "${expression.text}()") {
                 /**
                  * 由于函数的调用延迟发生，例如表达式a.foo()解析为
                  *              a.foo()

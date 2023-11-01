@@ -128,7 +128,7 @@ class KotlinListener(
         val primaryConstructor = ctx.primaryConstructor()
         if (primaryConstructor != null) {
             val method = context.foundMethodDeclarator(className, ctx.start.line)
-            handleClassParameters(method, primaryConstructor.classParameters())
+            handleClassParameters(type, method, primaryConstructor.classParameters())
             method.addReturnType(context.currentType())
             val primaryConstructorAnnotations = primaryConstructor
                     .modifiers()?.usedAnnotationNames?.map(GenericName::build)
@@ -232,6 +232,46 @@ class KotlinListener(
         super.enterPropertyDeclaration(ctx)
     }
 
+    override fun exitPropertyDeclaration(ctx: KotlinParser.PropertyDeclarationContext) {
+        val currentType = context.currentType()
+        if (currentType is KotlinTypeEntity) {
+            exitLastEntity()
+        }
+        super.exitPropertyDeclaration(ctx)
+    }
+
+    override fun enterGetter(ctx: KotlinParser.GetterContext) {
+        val currentProperty = context.currentProperty
+        if (currentProperty != null) {
+            context.enterGetter(currentProperty)
+        }
+        super.enterGetter(ctx)
+    }
+
+    override fun exitGetter(ctx: KotlinParser.GetterContext) {
+        val currentProperty = context.currentProperty
+        if (currentProperty != null) {
+            exitLastEntity()
+        }
+        super.exitGetter(ctx)
+    }
+
+    override fun enterSetter(ctx: KotlinParser.SetterContext) {
+        val currentProperty = context.currentProperty
+        if (currentProperty != null) {
+            context.enterSetter(currentProperty)
+        }
+        super.enterSetter(ctx)
+    }
+
+    override fun exitSetter(ctx: KotlinParser.SetterContext) {
+        val currentProperty = context.currentProperty
+        if (currentProperty != null) {
+            exitLastEntity()
+        }
+        super.exitSetter(ctx)
+    }
+
     /**
      * Found type parameters use
      * 将泛型的模板类型和约束类型注册到上下文
@@ -275,6 +315,7 @@ class KotlinListener(
             val delegationSpecifier = annotatedDelegationSpecifier.delegationSpecifier()
 
             /**
+             * ```text
              * delegationSpecifier
              * : constructorInvocation // 构造函数调用
              * | explicitDelegation // 确实是委托
@@ -282,6 +323,7 @@ class KotlinListener(
              * | functionType // 实现kotlin标准库中的函数式接口
              * | SUSPEND NL* functionType
              * ;
+             * ```
              */
             val constructorInvocation = delegationSpecifier.constructorInvocation()
             if (constructorInvocation != null) {
@@ -301,7 +343,11 @@ class KotlinListener(
         }
     }
 
-    private fun handleClassParameters(method: FunctionEntity, ctx: ClassParametersContext) {
+    private fun handleClassParameters(
+            type: KotlinTypeEntity,
+            method: FunctionEntity,
+            ctx: ClassParametersContext
+    ) {
         for (classParameter in ctx.classParameter()) {
             val varEntity = VarEntity(
                     GenericName.build(classParameter.simpleIdentifier().text),
@@ -309,6 +355,7 @@ class KotlinListener(
                     method, entityRepo.generateId()
             )
             method.addParameter(varEntity)
+            context.foundNewPropertyInPrimaryConstructor(classParameter, type)
         }
     }
 
@@ -350,19 +397,7 @@ class KotlinListener(
             logReceiverTypeNotSupport()
             return
         }
-        val variableDeclaration = ctx.variableDeclaration()
-        if (variableDeclaration == null) {
-            logger.warn("multi variable declaration does not support for class property in kotlin!")
-            return
-        }
-        // 如果编译通过，那么不带接收器的类属性一定不存在泛型参数和泛型参数约束
-        // 因此只需分析属性代理或属性的getter与setter即可
-        val propertyDelegate = ctx.propertyDelegate()
-        if (propertyDelegate != null) {
-            // TODO 分析类的属性的代理
-            return
-        }
-        // TODO 一般的类属性
+        context.foundNewProperty(ctx)
     }
 
     private fun handleVariableDeclaration(
@@ -371,7 +406,7 @@ class KotlinListener(
     ): VarEntity {
         val newExpression = KotlinExpression(entityRepo.generateId())
         context.lastContainer().addExpression(ctx, newExpression)
-        newExpression.setText(ctx.text)
+        newExpression.text = ctx.text
         newExpression.setStart(ctx.start.startIndex)
         newExpression.setStop(ctx.stop.stopIndex)
         newExpression.setIdentifier(variableDeclaration.simpleIdentifier().text)

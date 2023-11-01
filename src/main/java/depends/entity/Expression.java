@@ -38,7 +38,7 @@ public class Expression implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public Integer id;
-	private String text;                // for debug purpose
+	private String text;                // not only for debug purpose but also for kotlin expression call deduce
 	private GenericName rawType;        // the raw type name
 	private GenericName identifier;     // the varName, or method name, etc.
 	private boolean isSet = false;       // is a set relation from right to leftHand
@@ -329,6 +329,9 @@ public class Expression implements Serializable {
 		this.text = text;
 	}
 
+	public String getText() {
+		return text;
+	}
 
 	public boolean isCall() {
 		return isCall;
