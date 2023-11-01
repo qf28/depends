@@ -11,10 +11,7 @@ import depends.extractor.kotlin.KotlinParser.FunctionValueParametersContext
 import depends.extractor.kotlin.KotlinParser.ImportHeaderContext
 import depends.extractor.kotlin.KotlinParser.PackageHeaderContext
 import depends.extractor.kotlin.context.ExpressionUsage
-import depends.extractor.kotlin.utils.hasSecondaryConstructor
-import depends.extractor.kotlin.utils.parserException
-import depends.extractor.kotlin.utils.typeClassName
-import depends.extractor.kotlin.utils.usedTypeArguments
+import depends.extractor.kotlin.utils.*
 import depends.importtypes.ExactMatchImport
 import depends.relations.IBindingResolver
 import org.antlr.v4.runtime.ParserRuleContext
@@ -106,10 +103,12 @@ class KotlinListener(
      * Enter class declaration
      * ```text
      * classDeclaration
-     * : modifiers? (CLASS | (FUN NL*)? INTERFACE) NL* simpleIdentifier
+     * : modifiers? // done
+     * (CLASS | (FUN NL*)? INTERFACE)
+     * NL* simpleIdentifier //done
      * (NL* typeParameters)? // done
-     * (NL* primaryConstructor)?
-     * (NL* COLON NL* delegationSpecifiers)?
+     * (NL* primaryConstructor)? // done
+     * (NL* COLON NL* delegationSpecifiers)? // done
      * (NL* typeConstraints)?
      * (NL* classBody | NL* enumClassBody)?
      * ;
@@ -117,17 +116,23 @@ class KotlinListener(
      */
     override fun enterClassDeclaration(ctx: KotlinParser.ClassDeclarationContext) {
         val className = ctx.simpleIdentifier().text
-        context.foundNewType(GenericName.build(className), ctx.start.line)
+        val type = context.foundNewType(GenericName.build(className), ctx.start.line)
+        val classAnnotations = ctx.modifiers()?.usedAnnotationNames?.map(GenericName::build)
+        classAnnotations?.let { type.addAnnotations(it) }
         if (ctx.typeParameters() != null) {
             foundTypeParametersUse(ctx.typeParameters())
         }
         if (ctx.delegationSpecifiers() != null) {
             foundDelegationSpecifiersUse(ctx.delegationSpecifiers())
         }
-        if (ctx.primaryConstructor() != null) {
+        val primaryConstructor = ctx.primaryConstructor()
+        if (primaryConstructor != null) {
             val method = context.foundMethodDeclarator(className, ctx.start.line)
-            handleClassParameters(method, ctx.primaryConstructor().classParameters())
+            handleClassParameters(method, primaryConstructor.classParameters())
             method.addReturnType(context.currentType())
+            val primaryConstructorAnnotations = primaryConstructor
+                    .modifiers()?.usedAnnotationNames?.map(GenericName::build)
+            primaryConstructorAnnotations?.let { type.addAnnotations(it) }
             // 退出主构造函数声明
             exitLastEntity()
         } else {
@@ -155,6 +160,8 @@ class KotlinListener(
         val method = context.foundMethodDeclarator(className, ctx.start.line)
         handleFunctionParameter(method, ctx.functionValueParameters())
         method.addReturnType(context.currentType())
+        val usedAnnotationNames = ctx.modifiers()?.usedAnnotationNames?.map(GenericName::build)
+        usedAnnotationNames?.let { method.addAnnotations(it) }
         super.enterSecondaryConstructor(ctx)
     }
 
@@ -176,10 +183,12 @@ class KotlinListener(
      * @param ctx
      */
     override fun enterObjectDeclaration(ctx: KotlinParser.ObjectDeclarationContext) {
-        context.foundNewType(GenericName.build(ctx.simpleIdentifier().text), ctx.start.line)
+        val type = context.foundNewType(GenericName.build(ctx.simpleIdentifier().text), ctx.start.line)
+        val usedAnnotationNames = ctx.modifiers()?.usedAnnotationNames?.map(GenericName::build)
         if (ctx.delegationSpecifiers() != null) {
             foundDelegationSpecifiersUse(ctx.delegationSpecifiers())
         }
+        usedAnnotationNames?.let { type.addAnnotations(it) }
         super.enterObjectDeclaration(ctx)
     }
 
@@ -190,6 +199,7 @@ class KotlinListener(
 
     override fun enterFunctionDeclaration(ctx: FunctionDeclarationContext) {
         val type = ctx.type()
+        val usedAnnotationNames = ctx.modifiers()?.usedAnnotationNames?.map(GenericName::build)
         if (ctx.receiverType() == null) {
             val funcName = ctx.simpleIdentifier().text
             val functionEntity = context.foundMethodDeclarator(funcName, ctx.start.line)
@@ -197,6 +207,7 @@ class KotlinListener(
             if (type != null) {
                 functionEntity.addReturnType(GenericName.build(type.typeClassName))
             }
+            usedAnnotationNames?.let { functionEntity.addAnnotations(it) }
         } else {
             logReceiverTypeNotSupport()
         }
@@ -212,12 +223,11 @@ class KotlinListener(
 
     override fun enterPropertyDeclaration(ctx: KotlinParser.PropertyDeclarationContext) {
         val currentFunction = context.currentFunction()
+        val currentType = context.currentType()
         if (currentFunction != null) {
-            if (ctx.receiverType() == null) {
-                handleLocalVariable(ctx)
-            } else {
-                logReceiverTypeNotSupport()
-            }
+            handleLocalVariable(ctx)
+        } else if (currentType is KotlinTypeEntity) {
+            handleClassProperty(ctx)
         }
         super.enterPropertyDeclaration(ctx)
     }
@@ -315,20 +325,50 @@ class KotlinListener(
     }
 
     private fun handleLocalVariable(ctx: KotlinParser.PropertyDeclarationContext) {
+        if (ctx.receiverType() != null) {
+            logReceiverTypeNotSupport()
+            return
+        }
         val variableDeclaration = ctx.variableDeclaration()
         val multiVariableDeclaration = ctx.multiVariableDeclaration()
+        val usedAnnotationNames = ctx.modifiers()?.usedAnnotationNames?.map(GenericName::build)
         if (variableDeclaration != null) {
-            handleVariableDeclaration(variableDeclaration, ctx)
+            val varEntity = handleVariableDeclaration(variableDeclaration, ctx)
+            usedAnnotationNames?.let { varEntity.addAnnotations(it) }
         } else if (multiVariableDeclaration != null) {
             multiVariableDeclaration.variableDeclaration().forEach {
-                handleVariableDeclaration(it, ctx)
+                val varEntity = handleVariableDeclaration(it, ctx)
+                usedAnnotationNames?.let { it1 -> varEntity.addAnnotations(it1) }
             }
         } else {
             throw parserException
         }
     }
 
-    private fun handleVariableDeclaration(variableDeclaration: KotlinParser.VariableDeclarationContext, ctx: KotlinParser.PropertyDeclarationContext) {
+    private fun handleClassProperty(ctx: KotlinParser.PropertyDeclarationContext) {
+        if (ctx.receiverType() != null) {
+            logReceiverTypeNotSupport()
+            return
+        }
+        val variableDeclaration = ctx.variableDeclaration()
+        if (variableDeclaration == null) {
+            logger.warn("multi variable declaration does not support for class property in kotlin!")
+            return
+        }
+        // 如果编译通过，那么不带接收器的类属性一定不存在泛型参数和泛型参数约束
+        // 因此只需分析属性代理或属性的getter与setter即可
+        val propertyDelegate = ctx.propertyDelegate()
+        if (propertyDelegate != null) {
+            // TODO 分析类的属性的代理
+            return
+        }
+        // TODO 一般的类属性
+    }
+
+    private fun handleVariableDeclaration(
+            variableDeclaration: KotlinParser.VariableDeclarationContext,
+            ctx: KotlinParser.PropertyDeclarationContext
+    ): VarEntity {
         val newExpression = KotlinExpression(entityRepo.generateId())
         context.lastContainer().addExpression(ctx, newExpression)
         newExpression.setText(ctx.text)
@@ -352,6 +392,7 @@ class KotlinListener(
             )
         }
         newExpression.addDeducedTypeVar(varEntity)
+        return varEntity
     }
 
 }

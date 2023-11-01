@@ -188,6 +188,12 @@ public class CandidateTypes extends TypeEntity {
 
 
 	@Override
+	public void addAnnotations(Collection<GenericName> names) {
+		System.err.println("error: addAnnotations should not been invoked");
+		super.addAnnotations(names);
+	}
+
+	@Override
 	public Collection<Entity> getResolvedTypeParameters() {
 		System.err.println("error: getResolvedTypeParameters should not been invoked");
 		return super.getResolvedTypeParameters();

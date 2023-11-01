@@ -46,7 +46,12 @@ public abstract class DecoratedEntity extends Entity{
 			annotations  = new ArrayList<>();
 		this.annotations.add(name);
 	}
-	
+
+	public void addAnnotations(Collection<GenericName> names) {
+		if (annotations == null) annotations = new ArrayList<>();
+		annotations.addAll(names);
+	}
+
 	public void addTypeParameter(List<GenericName> parameters) {
 		this.getRawName().appendArguments(parameters);
 	}

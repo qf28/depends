@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("TypeUtilsKt")
 
-val parserException = IllegalStateException("error in parser")
+val parserException = IllegalStateException("error in parser. Maybe caused by g4 file changing")
 
 val KotlinParser.TypeContext.typeClassName: String
     get() {
